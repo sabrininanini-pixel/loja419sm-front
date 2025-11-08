@@ -2051,6 +2051,45 @@
             initializeApp();
         });
 
+		// Substitui a função de impressão
+function setupAndroidPrint() {
+    if (isAndroidApp()) {
+        console.log("📱 APK Android detectado - Configurando impressão...");
+        
+        // Substitui window.print() padrão
+        const originalPrint = window.print;
+        
+        window.print = function() {
+            if (isAndroidApp()) {
+                // Usa a função nativa do Android
+                Android.printPage();
+                return true;
+            } else {
+                // Fallback para impressão normal do navegador
+                return originalPrint();
+            }
+        };
+        
+        // Também pode interceptar cliques em botões de impressão
+        document.addEventListener('click', function(e) {
+            const target = e.target;
+            if (target.textContent.includes('imprimir') || 
+                target.textContent.includes('Imprimir') ||
+                target.id.includes('print') ||
+                target.className.includes('print')) {
+                
+                if (isAndroidApp()) {
+                    e.preventDefault();
+                    Android.printPage();
+                }
+            }
+        });
+    }
+}
+
+// Executa quando a página carrega
+document.addEventListener('DOMContentLoaded', setupAndroidPrint);
+
 
 
     </script>
