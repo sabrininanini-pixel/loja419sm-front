@@ -2052,17 +2052,21 @@
         });
 
 		// Substitui a função de impressão
+// ✅ DETECTA SE ESTÁ NO APK ANDROID E CONFIGURA IMPRESSÃO
 function setupAndroidPrint() {
-    if (isAndroidApp()) {
+    // Verifica se está no APK Android (interface Android existe)
+    const isAndroidApp = typeof Android !== 'undefined';
+    
+    if (isAndroidApp) {
         console.log("📱 APK Android detectado - Configurando impressão...");
         
-        // Substitui window.print() padrão
+        // Substitui a função de impressão padrão
         const originalPrint = window.print;
         
         window.print = function() {
-            if (isAndroidApp()) {
+            if (isAndroidApp) {
                 // Usa a função nativa do Android
-                Android.printPage();
+                Android.printConferencia();
                 return true;
             } else {
                 // Fallback para impressão normal do navegador
@@ -2070,26 +2074,33 @@ function setupAndroidPrint() {
             }
         };
         
-        // Também pode interceptar cliques em botões de impressão
+        // Também intercepta cliques no botão "Imprimir Conferência"
         document.addEventListener('click', function(e) {
             const target = e.target;
-            if (target.textContent.includes('imprimir') || 
-                target.textContent.includes('Imprimir') ||
-                target.id.includes('print') ||
-                target.className.includes('print')) {
+            if (target.textContent.includes('Imprimir Conferência') || 
+                target.textContent.includes('imprimir conferência') ||
+                target.onclick && target.onclick.toString().includes('printConferencia')) {
                 
-                if (isAndroidApp()) {
+                if (isAndroidApp) {
                     e.preventDefault();
-                    Android.printPage();
+                    Android.printConferencia();
                 }
             }
         });
+        
+        console.log("✅ Impressão Android configurada com sucesso!");
     }
 }
 
-// Executa quando a página carrega
-document.addEventListener('DOMContentLoaded', setupAndroidPrint);
+// ✅ EXECUTA QUANDO A PÁGINA CARREGA
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(setupAndroidPrint, 1000);
+});
 
+// ✅ TAMBÉM EXECUTA QUANDO A PÁGINA ESTIVER COMPLETAMENTE CARREGADA
+window.addEventListener('load', function() {
+    setTimeout(setupAndroidPrint, 500);
+});
 
 
     </script>
