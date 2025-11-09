@@ -2132,6 +2132,7 @@ function exportarParaExcel() {
 }
 
 // ✅ FUNÇÃO PARA EXPORTAR CSV NO NAVEGADOR
+// ✅ FUNÇÃO PARA EXPORTAR CSV NO NAVEGADOR (CORRIGIDA)
 function exportarCSVNoNavegador() {
     try {
         const tabela = document.getElementById('conferencia-table');
@@ -2142,33 +2143,52 @@ function exportarCSVNoNavegador() {
         
         let csv = [];
         
+        // ✅ ADICIONA BOM (Byte Order Mark) para UTF-8 - IMPORTANTE!
+        // Isso ajuda o Excel a reconhecer o encoding correto
+        const BOM = "\uFEFF";
+        
         // Cabeçalhos
         const cabecalhos = Array.from(tabela.querySelectorAll('thead th'))
-            .map(th => `"${th.textContent.trim()}"`);
-        csv.push(cabecalhos.join(','));
+            .map(th => {
+                let texto = th.textContent.trim();
+                // ✅ ESCAPA aspas duplas corretamente
+                texto = texto.replace(/"/g, '""');
+                return `"${texto}"`;
+            });
+        csv.push(cabecalhos.join(';')); // ✅ MUDEI para ponto e vírgula
         
         // Dados
         const linhas = tabela.querySelectorAll('tbody tr');
         linhas.forEach(linha => {
             const celulas = Array.from(linha.querySelectorAll('td'))
-                .map(td => `"${td.textContent.trim()}"`);
+                .map(td => {
+                    let texto = td.textContent.trim();
+                    // ✅ ESCAPA aspas duplas e quebras de linha
+                    texto = texto.replace(/"/g, '""');
+                    texto = texto.replace(/\n/g, ' ');
+                    texto = texto.replace(/\r/g, ' ');
+                    return `"${texto}"`;
+                });
             if (celulas.length > 0 && celulas.some(cell => cell !== '""')) {
-                csv.push(celulas.join(','));
+                csv.push(celulas.join(';')); // ✅ MUDEI para ponto e vírgula
             }
         });
         
-        // Cria e faz download do arquivo
-        const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
+        // ✅ CRIA CSV COM BOM E ENCODING CORRETO
+        const csvContent = BOM + csv.join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
+        
+        // ✅ MUDA EXTENSÃO para .csv (não .xls)
         a.download = `conferencia_nfe_${Date.now()}.csv`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
         
-        showNotification('Arquivo Excel exportado com sucesso!', 'success');
+        showNotification('Arquivo Excel exportado com sucesso! Abra no Excel.', 'success');
         
     } catch (error) {
         showNotification('Erro ao exportar: ' + error.message, 'error');
