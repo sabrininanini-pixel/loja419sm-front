@@ -2195,6 +2195,8 @@ function exportarCSVNoNavegador() {
     }
 }
 
+		
+
 // ✅ FUNÇÃO COMPARTILHAR EM PDF (MELHORADA)
 function compartilharEmPDF() {
     const isAndroidApp = typeof Android !== 'undefined';
@@ -2207,6 +2209,58 @@ function compartilharEmPDF() {
         window.print();
     }
 }
+
+
+		function setupLoginRemember() {
+    const isAndroidApp = typeof Android !== 'undefined';
+    
+    if (isAndroidApp) {
+        // Tenta carregar login salvo
+        const savedLogin = Android.carregarLogin();
+        
+        if (savedLogin && savedLogin !== "{}") {
+            try {
+                const loginData = JSON.parse(savedLogin);
+                if (loginData.username && loginData.password) {
+                    document.getElementById('username').value = loginData.username;
+                    document.getElementById('password').value = loginData.password;
+                    
+                    // Auto-login após 1 segundo
+                    setTimeout(() => {
+                        login();
+                    }, 1000);
+                }
+            } catch (error) {
+                console.log('Erro ao carregar login salvo:', error);
+            }
+        }
+        
+        // Intercepta o login para salvar as credenciais
+        const originalLogin = window.login;
+        window.login = function() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            
+            // Chama login original
+            originalLogin();
+            
+            // Salva credenciais se login for bem-sucedido
+            setTimeout(() => {
+                // Aqui você precisaria verificar se o login foi bem-sucedido
+                // Pode ser através de uma flag ou observando a mudança de tela
+                if (username && password) {
+                    Android.salvarLogin(username, password);
+                }
+            }, 2000);
+        };
+    }
+}
+
+// Executa quando a página carrega
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(setupLoginRemember, 500);
+});
+		
     </script>
 </body>
 </html>
