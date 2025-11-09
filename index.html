@@ -2211,7 +2211,8 @@ function compartilharEmPDF() {
 }
 
 
-		function setupLoginRemember() {
+	// ✅ SISTEMA DE LEMBRAR LOGIN NO APK (SEM AUTO-LOGIN)
+function setupLoginRemember() {
     const isAndroidApp = typeof Android !== 'undefined';
     
     if (isAndroidApp) {
@@ -2222,13 +2223,12 @@ function compartilharEmPDF() {
             try {
                 const loginData = JSON.parse(savedLogin);
                 if (loginData.username && loginData.password) {
+                    // ✅ APENAS PREENCHE OS CAMPOS - SEM AUTO-LOGIN
                     document.getElementById('username').value = loginData.username;
                     document.getElementById('password').value = loginData.password;
                     
-                    // Auto-login após 1 segundo
-                    setTimeout(() => {
-                        login();
-                    }, 1000);
+                    // Mostra mensagem que há credenciais salvas
+                    console.log('Credenciais salvas carregadas. Clique em "Entrar" para fazer login.');
                 }
             } catch (error) {
                 console.log('Erro ao carregar login salvo:', error);
@@ -2246,8 +2246,6 @@ function compartilharEmPDF() {
             
             // Salva credenciais se login for bem-sucedido
             setTimeout(() => {
-                // Aqui você precisaria verificar se o login foi bem-sucedido
-                // Pode ser através de uma flag ou observando a mudança de tela
                 if (username && password) {
                     Android.salvarLogin(username, password);
                 }
