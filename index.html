@@ -2068,7 +2068,7 @@
             initializeApp();
         });
 
-		// Substitui a função de impressão
+	// Substitui a função de impressão
 // ✅ DETECTA SE ESTÁ NO APK ANDROID E CONFIGURA IMPRESSÃO
 function setupAndroidPrint() {
     // Verifica se está no APK Android (interface Android existe)
@@ -2118,35 +2118,75 @@ document.addEventListener('DOMContentLoaded', function() {
 window.addEventListener('load', function() {
     setTimeout(setupAndroidPrint, 500);
 });
-// ✅ FUNÇÃO EXPORTAR PARA EXCEL
+
+// ✅ FUNÇÃO EXPORTAR PARA EXCEL (MELHORADA - FUNCIONAL)
 function exportarParaExcel() {
     const isAndroidApp = typeof Android !== 'undefined';
     
     if (isAndroidApp) {
         Android.exportarParaExcel();
     } else {
-        // No navegador - versão simplificada
-        showNotification('Exportando para Excel...', 'loading');
-        
-        // Simula exportação (em produção, faria download real)
-        setTimeout(() => {
-            showNotification('Funcionalidade completa em breve! Por enquanto use "Imprimir → Salvar como PDF"', 'info', 5000);
-        }, 1000);
+        // No navegador - exporta diretamente
+        exportarCSVNoNavegador();
     }
 }
 
-// ✅ FUNÇÃO COMPARTILHAR EM PDF
+// ✅ FUNÇÃO PARA EXPORTAR CSV NO NAVEGADOR
+function exportarCSVNoNavegador() {
+    try {
+        const tabela = document.getElementById('conferencia-table');
+        if (!tabela) {
+            showNotification('Tabela de conferência não encontrada', 'error');
+            return;
+        }
+        
+        let csv = [];
+        
+        // Cabeçalhos
+        const cabecalhos = Array.from(tabela.querySelectorAll('thead th'))
+            .map(th => `"${th.textContent.trim()}"`);
+        csv.push(cabecalhos.join(','));
+        
+        // Dados
+        const linhas = tabela.querySelectorAll('tbody tr');
+        linhas.forEach(linha => {
+            const celulas = Array.from(linha.querySelectorAll('td'))
+                .map(td => `"${td.textContent.trim()}"`);
+            if (celulas.length > 0 && celulas.some(cell => cell !== '""')) {
+                csv.push(celulas.join(','));
+            }
+        });
+        
+        // Cria e faz download do arquivo
+        const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `conferencia_nfe_${Date.now()}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        showNotification('Arquivo Excel exportado com sucesso!', 'success');
+        
+    } catch (error) {
+        showNotification('Erro ao exportar: ' + error.message, 'error');
+    }
+}
+
+// ✅ FUNÇÃO COMPARTILHAR EM PDF (MELHORADA)
 function compartilharEmPDF() {
     const isAndroidApp = typeof Android !== 'undefined';
     
     if (isAndroidApp) {
         Android.compartilharEmPDF();
     } else {
-        // No navegador - usa impressão normal
+        // No navegador - instruções claras
+        showNotification('Para salvar como PDF: 1. Clique em Imprimir → 2. Escolha "Salvar como PDF" → 3. Selecione local', 'info', 5000);
         window.print();
     }
 }
-
     </script>
 </body>
 </html>
