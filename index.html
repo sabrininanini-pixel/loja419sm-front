@@ -2126,6 +2126,7 @@ function exportarParaExcel() {
 
 // ✅ FUNÇÃO PARA EXPORTAR CSV NO NAVEGADOR
 // ✅ FUNÇÃO PARA EXPORTAR CSV NO NAVEGADOR (CORRIGIDA)
+// ✅ FUNÇÃO PARA EXPORTAR CSV NO NAVEGADOR (CORRIGIDA - CÓDIGOS DE BARRAS FORMATADOS)
 function exportarCSVNoNavegador() {
     try {
         const tabela = document.getElementById('conferencia-table');
@@ -2137,33 +2138,38 @@ function exportarCSVNoNavegador() {
         let csv = [];
         
         // ✅ ADICIONA BOM (Byte Order Mark) para UTF-8 - IMPORTANTE!
-        // Isso ajuda o Excel a reconhecer o encoding correto
         const BOM = "\uFEFF";
         
         // Cabeçalhos
         const cabecalhos = Array.from(tabela.querySelectorAll('thead th'))
             .map(th => {
                 let texto = th.textContent.trim();
-                // ✅ ESCAPA aspas duplas corretamente
                 texto = texto.replace(/"/g, '""');
                 return `"${texto}"`;
             });
-        csv.push(cabecalhos.join(';')); // ✅ MUDEI para ponto e vírgula
+        csv.push(cabecalhos.join(';'));
         
         // Dados
         const linhas = tabela.querySelectorAll('tbody tr');
         linhas.forEach(linha => {
             const celulas = Array.from(linha.querySelectorAll('td'))
-                .map(td => {
+                .map((td, index) => {
                     let texto = td.textContent.trim();
-                    // ✅ ESCAPA aspas duplas e quebras de linha
+                    
+                    // ✅ CORREÇÃO: Para a primeira coluna (Código de Barras), formata como texto
+                    if (index === 0 && texto) {
+                        // Força o Excel a tratar como texto adicionando tab no início
+                        texto = "\t" + texto;
+                    }
+                    
                     texto = texto.replace(/"/g, '""');
                     texto = texto.replace(/\n/g, ' ');
                     texto = texto.replace(/\r/g, ' ');
                     return `"${texto}"`;
                 });
+            
             if (celulas.length > 0 && celulas.some(cell => cell !== '""')) {
-                csv.push(celulas.join(';')); // ✅ MUDEI para ponto e vírgula
+                csv.push(celulas.join(';'));
             }
         });
         
@@ -2174,20 +2180,18 @@ function exportarCSVNoNavegador() {
         const a = document.createElement('a');
         a.href = url;
         
-        // ✅ MUDA EXTENSÃO para .csv (não .xls)
         a.download = `conferencia_nfe_${Date.now()}.csv`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
         
-        showNotification('Arquivo Excel exportado com sucesso! Abra no Excel.', 'success');
+        showNotification('Arquivo Excel exportado com sucesso! Códigos de barras formatados corretamente.', 'success');
         
     } catch (error) {
         showNotification('Erro ao exportar: ' + error.message, 'error');
     }
 }
-
 		
 
 // ✅ FUNÇÃO COMPARTILHAR EM PDF (MELHORADA)
