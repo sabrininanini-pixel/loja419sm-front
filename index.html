@@ -2186,7 +2186,7 @@ function exportarCSVNoNavegador() {
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
         
-        showNotification('Arquivo Excel exportado com sucesso! Códigos de barras formatados corretamente.', 'success');
+        showNotification('Arquivo Excel exportado com sucesso!', 'success');
         
     } catch (error) {
         showNotification('Erro ao exportar: ' + error.message, 'error');
