@@ -1746,6 +1746,15 @@ async function importarXMLPorChave() {
         return;
     }
 
+    // ✅ VERIFICAÇÃO DE DUPLICIDADE - Busca na planilha atual
+    const currentData = await fetchSheetData("NOTA FISCAL");
+    const chaveExists = checkIfChaveExists(currentData, chaveAcesso);
+    
+    if (chaveExists) {
+        showNotification("Esta nota fiscal já foi importada anteriormente!", "error");
+        return;
+    }
+
     showNotification("Importando XML pela chave de acesso...", "loading");
 
     try {
@@ -1770,8 +1779,6 @@ async function importarXMLPorChave() {
         }
 
         hideNotification();
-        
-        // ✅ MENSAGEM SIMPLES DE SUCESSO (sem xml_info)
         showNotification(result.message, "success", 5000);
 
         chaveInput.value = '';
@@ -1792,7 +1799,48 @@ async function importarXMLPorChave() {
         }
     }
 }
-        
+
+/**
+ * ✅ FUNÇÃO AUXILIAR: Verifica se a chave já existe nos dados atuais
+ */
+function checkIfChaveExists(data, chaveAcesso) {
+    if (!data || !Array.isArray(data)) return false;
+    
+    // Converte a chave para o formato que aparece na planilha ("Chave: XXXXXXXXXXXXXXXXX")
+    const chaveFormatada = `Chave: ${chaveAcesso}`;
+    
+    // Procura em todas as linhas
+    for (let row of data) {
+        if (row && Array.isArray(row)) {
+            for (let cell of row) {
+                if (cell && String(cell).includes(chaveFormatada)) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+/**
+ * ✅ FUNÇÃO AUXILIAR: Busca dados da planilha
+ */
+async function fetchSheetData(sheetName) {
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/fetch-sheet-data`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ sheet_name: sheetName })
+        });
+
+        const result = await response.json();
+        return result.data || [];
+    } catch (error) {
+        console.error("Erro ao buscar dados:", error);
+        return [];
+    }
+}
         /**
          * Função CRUCIAL: Envia o novo valor da célula editável para o Google Sheets.
          */
