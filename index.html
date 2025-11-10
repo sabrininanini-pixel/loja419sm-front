@@ -1728,48 +1728,97 @@
         /**
          * ✅ FUNÇÃO CORRIGIDA: Importa XML por chave ignorando espaços
          */
-        async function importarXMLPorChave() {
-            const chaveInput = document.getElementById("chave-acesso-input");
-            if (!chaveInput) {
-                showNotification("Campo de chave não encontrado.", "error");
-                return;
-            }
-            
-            // ✅ CORREÇÃO: Remove espaços automaticamente
-            let chaveAcesso = chaveInput.value.replace(/\s+/g, '');
-            
-            if (!chaveAcesso || chaveAcesso.length !== 44) {
-                showNotification(`Chave de acesso inválida. Deve conter 44 dígitos. (Atual: ${chaveAcesso.length} dígitos)`, "warning");
-                return;
-            }
+        /**
+ * ✅ FUNÇÃO CORRIGIDA: Importa XML por chave ignorando espaços E EXIBE INFORMAÇÕES
+ */
+async function importarXMLPorChave() {
+    const chaveInput = document.getElementById("chave-acesso-input");
+    if (!chaveInput) {
+        showNotification("Campo de chave não encontrado.", "error");
+        return;
+    }
+    
+    // ✅ CORREÇÃO: Remove espaços automaticamente
+    let chaveAcesso = chaveInput.value.replace(/\s+/g, '');
+    
+    if (!chaveAcesso || chaveAcesso.length !== 44) {
+        showNotification(`Chave de acesso inválida. Deve conter 44 dígitos. (Atual: ${chaveAcesso.length} dígitos)`, "warning");
+        return;
+    }
 
-            showNotification("Importando XML pela chave de acesso...", "loading");
+    showNotification("Importando XML pela chave de acesso...", "loading");
 
-            try {
-                const response = await fetch(`${BACKEND_URL}/api/importar-xml-chave`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    credentials: 'include',
-                    body: JSON.stringify({ chaveAcesso })
-                });
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/importar-xml-chave`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: 'include',
+            body: JSON.stringify({ chaveAcesso })
+        });
 
-                const result = await response.json();
-                hideNotification();
-
-                if (!response.ok || result.error) {
-                    showNotification(`Erro: ${result.error || 'Falha desconhecida ao importar XML.'}`, "error");
-                } else {
-                    showNotification(result.message, "success");
-                    chaveInput.value = '';
-                    hidePasteModal();
-                    switchTab("NOTA FISCAL");
-                }
-            } catch (error) {
-                hideNotification();
-                console.error("Erro ao importar XML por chave:", error);
-                showNotification("Erro de rede ao tentar importar XML pela chave.", "error");
-            }
+        const result = await response.json();
+        
+        if (!response.ok || result.error) {
+            hideNotification();
+            showNotification(`Erro: ${result.error || 'Falha desconhecida ao importar XML.'}`, "error");
+            return;
         }
+
+        // ✅ EXTRAI E EXIBE INFORMAÇÕES DO XML
+        let infoExtraidas = {
+            pedidoCapta: 'Não extraído',
+            numeroNota: 'Não extraído', 
+            dataEmissao: 'Não extraída'
+        };
+        
+        if (result.xml_content) {
+            infoExtraidas = extrairInformacoesXML(result.xml_content);
+        }
+        
+        hideNotification();
+        
+        // ✅ EXIBE MENSAGEM DE SUCESSO COM AS INFORMAÇÕES
+        const mensagemSucesso = `
+            <div class="text-left">
+                <p class="font-bold text-green-700 mb-2">✅ XML importado com sucesso!</p>
+                <div class="bg-green-50 p-3 rounded border border-green-200">
+                    <p class="text-sm"><span class="font-semibold">Nota Fiscal:</span> ${infoExtraidas.numeroNota}</p>
+                    <p class="text-sm"><span class="font-semibold">Data:</span> ${infoExtraidas.dataEmissao}</p>
+                    <p class="text-sm"><span class="font-semibold">Pedido Capta:</span> ${infoExtraidas.pedidoCapta}</p>
+                    <p class="text-sm"><span class="font-semibold">Chave:</span> ${infoExtraidas.chaveAcesso.substring(0, 20)}...</p>
+                </div>
+            </div>
+        `;
+        
+        // ✅ USA showNotification COM HTML personalizado
+        const notification = document.createElement('div');
+        notification.className = 'p-4 bg-green-500 text-white rounded-lg shadow-xl flex items-center space-x-3 transition-opacity duration-300 opacity-0';
+        notification.innerHTML = mensagemSucesso;
+        
+        const container = document.getElementById('notifications-container');
+        container.appendChild(notification);
+        
+        setTimeout(() => notification.classList.remove('opacity-0'), 10);
+        
+        setTimeout(() => {
+            notification.classList.add('opacity-0');
+            setTimeout(() => {
+                if (notification.parentNode === container) {
+                    container.removeChild(notification);
+                }
+            }, 300);
+        }, 8000); // Mostra por 8 segundos
+
+        chaveInput.value = '';
+        hidePasteModal();
+        switchTab("NOTA FISCAL");
+
+    } catch (error) {
+        hideNotification();
+        console.error("Erro ao importar XML por chave:", error);
+        showNotification("Erro de rede ao tentar importar XML pela chave.", "error");
+    }
+}
         
         /**
          * Função CRUCIAL: Envia o novo valor da célula editável para o Google Sheets.
@@ -1920,6 +1969,52 @@
         }
 
 
+		/**
+ * Extrai informações específicas do XML
+ */
+function extrairInformacoesXML(xmlContent) {
+    try {
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlContent, "text/xml");
+        
+        // Extrai Pedido Capta
+        const xPedElement = xmlDoc.getElementsByTagName('xPed')[0];
+        const pedidoCapta = xPedElement ? xPedElement.textContent : 'Não encontrado';
+        
+        // Extrai Número da Nota Fiscal
+        const nNFElement = xmlDoc.getElementsByTagName('nNF')[0];
+        const numeroNota = nNFElement ? nNFElement.textContent : 'Não encontrado';
+        
+        // Extrai Data de Emissão (apenas a parte da data)
+        const dhEmiElement = xmlDoc.getElementsByTagName('dhEmi')[0];
+        let dataEmissao = 'Não encontrada';
+        if (dhEmiElement) {
+            const dataCompleta = dhEmiElement.textContent;
+            // Extrai apenas a parte da data (YYYY-MM-DD)
+            dataEmissao = dataCompleta.split('T')[0];
+        }
+        
+        // Extrai Chave de Acesso (opcional - para confirmar)
+        const chaveElement = xmlDoc.getElementsByTagName('chNFe')[0];
+        const chaveAcesso = chaveElement ? chaveElement.textContent : 'Não encontrada';
+        
+        return {
+            pedidoCapta,
+            numeroNota,
+            dataEmissao,
+            chaveAcesso
+        };
+    } catch (error) {
+        console.error('Erro ao extrair informações do XML:', error);
+        return {
+            pedidoCapta: 'Erro na extração',
+            numeroNota: 'Erro na extração',
+            dataEmissao: 'Erro na extração',
+            chaveAcesso: 'Erro na extração'
+        };
+    }
+}
+
         // --- Funções de Modal e Notificação (Tailwind) ---
 
         function showPasteModal() {
@@ -2018,20 +2113,31 @@
         }
 
         function handleFileUploadChange(event) {
-            const file = event.target.files[0];
-            if (!file) return;
+    const file = event.target.files[0];
+    if (!file) return;
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const xmlContent = e.target.result;
-                importXMLData(xmlContent);
-                event.target.value = null; 
-            };
-            reader.onerror = function() {
-                showNotification("Erro ao ler o arquivo XML.", 'error');
-            };
-            reader.readAsText(file);
-        }
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const xmlContent = e.target.result;
+        
+        // ✅ EXTRAI INFORMAÇÕES DO XML DO ARQUIVO
+        const infoExtraidas = extrairInformacoesXML(xmlContent);
+        
+        // ✅ EXIBE INFORMAÇÕES ANTES DE IMPORTAR
+        showNotification(
+            `📄 Arquivo carregado! NF: ${infoExtraidas.numeroNota} | Data: ${infoExtraidas.dataEmissao} | Pedido: ${infoExtraidas.pedidoCapta}`, 
+            'success', 
+            5000
+        );
+        
+        importXMLData(xmlContent);
+        event.target.value = null; 
+    };
+    reader.onerror = function() {
+        showNotification("Erro ao ler o arquivo XML.", 'error');
+    };
+    reader.readAsText(file);
+}
 
         // --- Inicialização ---
 
