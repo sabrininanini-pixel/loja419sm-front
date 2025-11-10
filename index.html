@@ -1731,6 +1731,7 @@
         /**
  * ✅ FUNÇÃO CORRIGIDA: Importa XML por chave ignorando espaços E EXIBE INFORMAÇÕES
  */
+ */
 async function importarXMLPorChave() {
     const chaveInput = document.getElementById("chave-acesso-input");
     if (!chaveInput) {
@@ -1738,7 +1739,6 @@ async function importarXMLPorChave() {
         return;
     }
     
-    // ✅ CORREÇÃO: Remove espaços automaticamente
     let chaveAcesso = chaveInput.value.replace(/\s+/g, '');
     
     if (!chaveAcesso || chaveAcesso.length !== 44) {
@@ -1756,67 +1756,40 @@ async function importarXMLPorChave() {
             body: JSON.stringify({ chaveAcesso })
         });
 
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+
         const result = await response.json();
         
-        if (!response.ok || result.error) {
+        if (result.error) {
             hideNotification();
-            showNotification(`Erro: ${result.error || 'Falha desconhecida ao importar XML.'}`, "error");
+            showNotification(`Erro: ${result.error}`, "error");
             return;
         }
 
-        // ✅ EXTRAI E EXIBE INFORMAÇÕES DO XML
-        let infoExtraidas = {
-            pedidoCapta: 'Não extraído',
-            numeroNota: 'Não extraído', 
-            dataEmissao: 'Não extraída'
-        };
-        
-        if (result.xml_content) {
-            infoExtraidas = extrairInformacoesXML(result.xml_content);
-        }
-        
         hideNotification();
         
-        // ✅ EXIBE MENSAGEM DE SUCESSO COM AS INFORMAÇÕES
-        const mensagemSucesso = `
-            <div class="text-left">
-                <p class="font-bold text-green-700 mb-2">✅ XML importado com sucesso!</p>
-                <div class="bg-green-50 p-3 rounded border border-green-200">
-                    <p class="text-sm"><span class="font-semibold">Nota Fiscal:</span> ${infoExtraidas.numeroNota}</p>
-                    <p class="text-sm"><span class="font-semibold">Data:</span> ${infoExtraidas.dataEmissao}</p>
-                    <p class="text-sm"><span class="font-semibold">Pedido Capta:</span> ${infoExtraidas.pedidoCapta}</p>
-                    <p class="text-sm"><span class="font-semibold">Chave:</span> ${infoExtraidas.chaveAcesso.substring(0, 20)}...</p>
-                </div>
-            </div>
-        `;
-        
-        // ✅ USA showNotification COM HTML personalizado
-        const notification = document.createElement('div');
-        notification.className = 'p-4 bg-green-500 text-white rounded-lg shadow-xl flex items-center space-x-3 transition-opacity duration-300 opacity-0';
-        notification.innerHTML = mensagemSucesso;
-        
-        const container = document.getElementById('notifications-container');
-        container.appendChild(notification);
-        
-        setTimeout(() => notification.classList.remove('opacity-0'), 10);
-        
-        setTimeout(() => {
-            notification.classList.add('opacity-0');
-            setTimeout(() => {
-                if (notification.parentNode === container) {
-                    container.removeChild(notification);
-                }
-            }, 300);
-        }, 8000); // Mostra por 8 segundos
+        // ✅ MENSAGEM SIMPLES DE SUCESSO (sem xml_info)
+        showNotification(result.message, "success", 5000);
 
         chaveInput.value = '';
         hidePasteModal();
-        switchTab("NOTA FISCAL");
+        
+        setTimeout(() => {
+            switchTab("NOTA FISCAL");
+        }, 1000);
 
     } catch (error) {
         hideNotification();
         console.error("Erro ao importar XML por chave:", error);
-        showNotification("Erro de rede ao tentar importar XML pela chave.", "error");
+        
+        if (error.message.includes('NetworkError') || error.message.includes('Failed to fetch')) {
+            showNotification("Erro de conexão com o servidor. Verifique sua internet.", "error");
+        } else {
+            showNotification(`Erro: ${error.message}`, "error");
+        }
     }
 }
         
@@ -2117,26 +2090,41 @@ function extrairInformacoesXML(xmlContent) {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = async function(e) {
         const xmlContent = e.target.result;
         
-        // ✅ EXTRAI INFORMAÇÕES DO XML DO ARQUIVO
-        const infoExtraidas = extrairInformacoesXML(xmlContent);
+        showNotification("Enviando XML para importação...", "loading");
         
-        // ✅ EXIBE INFORMAÇÕES ANTES DE IMPORTAR
-        showNotification(
-            `📄 Arquivo carregado! NF: ${infoExtraidas.numeroNota} | Data: ${infoExtraidas.dataEmissao} | Pedido: ${infoExtraidas.pedidoCapta}`, 
-            'success', 
-            5000
-        );
-        
-        importXMLData(xmlContent);
-        event.target.value = null; 
+        try {
+            const response = await fetch(`${BACKEND_URL}/api/import-xml-data`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ xml_content: xmlContent, user_id: USER_ID })
+            });
+
+            const result = await response.json();
+            hideNotification();
+
+            if (!response.ok || result.error) {
+                showNotification(`Falha na Importação: ${result.error || 'Erro desconhecido do servidor.'}`, 'error');
+            } else {
+                // ✅ MENSAGEM SIMPLES DE SUCESSO (sem xml_info)
+                showNotification(result.message, 'success', 5000);
+                switchTab("NOTA FISCAL");
+            }
+
+        } catch (error) {
+            hideNotification();
+            console.error("Erro de Rede:", error);
+            showNotification("Erro de Rede ao tentar conectar com o servidor.", 'error');
+        }
     };
     reader.onerror = function() {
         showNotification("Erro ao ler o arquivo XML.", 'error');
     };
     reader.readAsText(file);
+    event.target.value = null; // Limpa o input file
 }
 
         // --- Inicialização ---
