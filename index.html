@@ -2133,7 +2133,7 @@ function extrairInformacoesXML(xmlContent) {
             }
         }
 
-       function handleFileUploadChange(event) {
+        function handleFileUploadChange(event) {
     const file = event.target.files[0];
     if (!file) return;
 
@@ -2141,19 +2141,6 @@ function extrairInformacoesXML(xmlContent) {
     reader.onload = async function(e) {
         const xmlContent = e.target.result;
         
-        // ✅ EXTRAI A CHAVE DO XML PARA VERIFICAÇÃO DE DUPLICIDADE
-        const chaveAcesso = extractChaveFromXML(xmlContent);
-        if (chaveAcesso) {
-            const currentData = await fetchSheetData("NOTA FISCAL");
-            const chaveExists = checkIfChaveExists(currentData, chaveAcesso);
-            
-            if (chaveExists) {
-                showNotification("Esta nota fiscal já foi importada anteriormente!", "error");
-                event.target.value = null;
-                return;
-            }
-        }
-
         showNotification("Enviando XML para importação...", "loading");
         
         try {
@@ -2170,6 +2157,7 @@ function extrairInformacoesXML(xmlContent) {
             if (!response.ok || result.error) {
                 showNotification(`Falha na Importação: ${result.error || 'Erro desconhecido do servidor.'}`, 'error');
             } else {
+                // ✅ MENSAGEM SIMPLES DE SUCESSO (sem xml_info)
                 showNotification(result.message, 'success', 5000);
                 switchTab("NOTA FISCAL");
             }
@@ -2184,21 +2172,9 @@ function extrairInformacoesXML(xmlContent) {
         showNotification("Erro ao ler o arquivo XML.", 'error');
     };
     reader.readAsText(file);
-    event.target.value = null;
+    event.target.value = null; // Limpa o input file
 }
 
-/**
- * ✅ FUNÇÃO AUXILIAR: Extrai chave de acesso do XML
- */
-function extractChaveFromXML(xmlContent) {
-    try {
-        const match = xmlContent.match(/<infNFe[^>]*Id="NFe([^"]+)"/);
-        return match ? match[1] : null;
-    } catch (error) {
-        console.error("Erro ao extrair chave do XML:", error);
-        return null;
-    }
-}
         // --- Inicialização ---
 
         document.addEventListener('DOMContentLoaded', function() {
