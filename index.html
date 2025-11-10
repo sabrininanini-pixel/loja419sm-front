@@ -170,6 +170,15 @@
             background-color: #fecaca !important; /* Vermelho mais escuro no hover */
         }
 
+        /* ✅ ESTILOS PARA AS LINHAS DE NOTAS FISCAIS NA CONFERENCIA */
+        .bg-blue-25 {
+            background-color: #eff6ff; /* Azul bem claro */
+        }
+
+        .bg-blue-25:hover {
+            background-color: #dbeafe; /* Azul um pouco mais escuro no hover */
+        }
+
         /* Estilo para células editáveis (Contagem Loja / OBS) */
         [contenteditable="true"]:focus {
             outline: none;
@@ -242,7 +251,6 @@
                 height: 1.25rem !important;
             }
         }
-
 
     </style>
 </head>
@@ -724,47 +732,44 @@
 
         /**
          * Altera a aba ativa e carrega o conteúdo.
-         * AGORA COM CONTROLE DE MONITOR DE CACHE
          */
-        /**
- * Altera a aba ativa e carrega o conteúdo.
- * AGORA COM CONTROLE DE MONITOR DE CACHE
- */
-function switchTab(sheetName) {
-    autoSaveContagemOnTabChange();
-    
-    const currentTab = document.querySelector('.tab-button.border-indigo-600')?.dataset.tab;
-    if (currentTab === 'CONTAGEM LOJA' && sheetName !== 'CONTAGEM LOJA') {
-        if (cacheChangeTimer) {
-            clearTimeout(cacheChangeTimer);
-        }
-    }
-    
-    if (sheetName === 'CONTAGEM LOJA') {
-        startCacheChangeMonitor();
-    }
+        function switchTab(sheetName) {
+            autoSaveContagemOnTabChange();
+            
+            const currentTab = document.querySelector('.tab-button.border-indigo-600')?.dataset.tab;
+            if (currentTab === 'CONTAGEM LOJA' && sheetName !== 'CONTAGEM LOJA') {
+                if (cacheChangeTimer) {
+                    clearTimeout(cacheChangeTimer);
+                }
+            }
+            
+            if (sheetName === 'CONTAGEM LOJA') {
+                startCacheChangeMonitor();
+            }
 
-    tabButtons.forEach(btn => {
-        if (btn.dataset.tab === sheetName) {
-            btn.classList.add('border-indigo-600', 'text-indigo-600');
-            btn.classList.remove('border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700');
-        } else {
-            btn.classList.remove('border-indigo-600', 'text-indigo-600');
-            btn.classList.add('border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700');
-        }
-    });
+            tabButtons.forEach(btn => {
+                if (btn.dataset.tab === sheetName) {
+                    btn.classList.add('border-indigo-600', 'text-indigo-600');
+                    btn.classList.remove('border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700');
+                } else {
+                    btn.classList.remove('border-indigo-600', 'text-indigo-600');
+                    btn.classList.add('border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700');
+                }
+            });
 
-    // ✅ FORÇA RECARREGAMENTO COMPLETO PARA CONFERENCIA
-    if (sheetName === "CONFERENCIA") {
-        contentStack.innerHTML = `<div class="text-center py-10 text-gray-500">Carregando dados de ${sheetName}...</div>`;
-        setTimeout(() => {
+            contentStack.innerHTML = `<div class="text-center py-10 text-gray-500">Carregando dados de ${sheetName}...</div>`;
+            
+            if (sheetName === "NOTA FISCAL") {
+                contentStack.innerHTML = renderNotaFiscalLayout();
+            } else if (sheetName === "CONTAGEM LOJA") {
+                contentStack.innerHTML = renderContagemLojaLayout();
+                currentContador = 'CONTAGEM LOJA';
+            } else if (sheetName === "CONFERENCIA") {
+                contentStack.innerHTML = renderConferenciaLayout();
+            }
+            
             loadTabContent(sheetName);
-        }, 100);
-    } else {
-        contentStack.innerHTML = `<div class="text-center py-10 text-gray-500">Carregando dados de ${sheetName}...</div>`;
-        loadTabContent(sheetName);
-    }
-}
+        }
 
         // ÍCONES
         const documentIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>`;
@@ -839,33 +844,33 @@ function switchTab(sheetName) {
          * Retorna o HTML completo da aba CONFERENCIA (com botão de impressão e modo scroll).
          */
         function renderConferenciaLayout() {
-    return `
-        <div id="conferencia-content">
-            <div class="flex flex-wrap gap-3 pb-4 mb-4 border-b border-gray-200 print-hidden">
-                <button onclick="printConferencia()" class="flex items-center space-x-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg shadow-sm hover:bg-blue-200 transition duration-150 text-sm font-medium border border-blue-300">
-                    <span class="text-blue-600">${printerIcon}</span>
-                    <span>Imprimir Conferência</span>
-                </button>
-                
-                <!-- ✅ NOVO BOTÃO EXPORTAR EXCEL -->
-                <button onclick="exportarParaExcel()" class="flex items-center space-x-2 px-4 py-2 bg-green-100 text-green-700 rounded-lg shadow-sm hover:bg-green-200 transition duration-150 text-sm font-medium border border-green-300">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <span>Exportar para Excel</span>
-                </button>
-                
-                
-                <button onclick="toggleScrollMode('CONFERENCIA')" id="scroll-button-conferencia" class="flex items-center space-x-2 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg shadow-sm hover:bg-indigo-200 transition duration-150 text-sm font-medium border border-indigo-300">
-                    <span>Modo Scroll</span>
-                </button>
-            </div>
-            <div id="dynamic-table-content-conferencia">
-                <p class="text-center text-gray-400 py-10">Carregando dados...</p>
-            </div>
-        </div>
-    `;
-}
+            return `
+                <div id="conferencia-content">
+                    <div class="flex flex-wrap gap-3 pb-4 mb-4 border-b border-gray-200 print-hidden">
+                        <button onclick="printConferencia()" class="flex items-center space-x-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg shadow-sm hover:bg-blue-200 transition duration-150 text-sm font-medium border border-blue-300">
+                            <span class="text-blue-600">${printerIcon}</span>
+                            <span>Imprimir Conferência</span>
+                        </button>
+                        
+                        <!-- ✅ NOVO BOTÃO EXPORTAR EXCEL -->
+                        <button onclick="exportarParaExcel()" class="flex items-center space-x-2 px-4 py-2 bg-green-100 text-green-700 rounded-lg shadow-sm hover:bg-green-200 transition duration-150 text-sm font-medium border border-green-300">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <span>Exportar para Excel</span>
+                        </button>
+                        
+                        
+                        <button onclick="toggleScrollMode('CONFERENCIA')" id="scroll-button-conferencia" class="flex items-center space-x-2 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg shadow-sm hover:bg-indigo-200 transition duration-150 text-sm font-medium border border-indigo-300">
+                            <span>Modo Scroll</span>
+                        </button>
+                    </div>
+                    <div id="dynamic-table-content-conferencia">
+                        <p class="text-center text-gray-400 py-10">Carregando dados...</p>
+                    </div>
+                </div>
+            `;
+        }
 
         /**
          * Abre a caixa de diálogo de impressão do navegador com estilos A4.
@@ -1029,204 +1034,205 @@ function switchTab(sheetName) {
          * Gerencia a busca de dados e a renderização do conteúdo da aba.
          */
         async function loadTabContent(sheetName) {
-    const sheetToLoad = (sheetName === "CONTAGEM LOJA") ? currentContador : sheetName;
-    const data = await fetchSheetData(sheetToLoad);
+            const sheetToLoad = (sheetName === "CONTAGEM LOJA") ? currentContador : sheetName;
+            const data = await fetchSheetData(sheetToLoad);
 
-    let targetElementId = 'dynamic-table-content';
-    let headers = [];
+            let targetElementId = 'dynamic-table-content';
+            let headers = [];
 
-    if (sheetName === "NOTA FISCAL") {
-        headers = ["Descrição", "Quantidade", "Código de Barras", "Item"];
-        targetElementId = 'dynamic-table-content';
-        const targetElement = document.getElementById(targetElementId);
-        if (targetElement) {
-            targetElement.innerHTML = renderTable(sheetName, data, headers);
-            updateNotaFiscalCache(data);
-        }
+            if (sheetName === "NOTA FISCAL") {
+                headers = ["Descrição", "Quantidade", "Código de Barras", "Item"];
+                targetElementId = 'dynamic-table-content';
+                const targetElement = document.getElementById(targetElementId);
+                if (targetElement) {
+                    targetElement.innerHTML = renderTable(sheetName, data, headers);
+                    updateNotaFiscalCache(data);
+                }
 
-    } else if (sheetName === "CONTAGEM LOJA") {
-        headers = ["Código de Barras", "Descrição"]; 
-        targetElementId = 'dynamic-table-content-contagem';
-        
-        setTimeout(() => {
-            const contadorButtons = document.querySelectorAll('.contador-button');
-            contadorButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    switchContador(this.getAttribute('data-contador'));
-                });
-            });
-        }, 100);
-        
-        if (!notaFiscalData) {
-            await loadNotaFiscalDataForCache();
-        }
-        
-        const targetElement = document.getElementById(targetElementId);
-        if (targetElement) {
-            targetElement.innerHTML = renderContagemTableFixedRows(data, headers);
-            
-            updatePendingCount();
-            
-            startCacheChangeMonitor();
-            
-            setTimeout(() => {
-                requestAnimationFrame(focusNextEmptyContagemCell);
-            }, 100); 
-        }
-
-    } else if (sheetName === "CONFERENCIA") {
-        headers = ["Código de Barras", "Descrição do Produto", "Quantidade NF", "Contagem Loja", "Diferença", "OBS"]; 
-        targetElementId = 'dynamic-table-content-conferencia';
-        
-        const targetElement = document.getElementById(targetElementId);
-        if (targetElement) {
-            // ✅ BUSCA AS INFORMAÇÕES DAS NOTAS FISCAIS
-            const notasFiscaisInfo = await getNotasFiscaisInfo();
-            targetElement.innerHTML = renderConferenciaTableWithNotasInfo(sheetName, data, headers, notasFiscaisInfo);
-            
-            setTimeout(() => {
-                applyConferenciaStyles(headers.length);
-            }, 0);
-        }
-    }
-}
-
-/**
- * ✅ NOVA FUNÇÃO: Busca informações das notas fiscais da aba NOTA FISCAL
- */
-async function getNotasFiscaisInfo() {
-    try {
-        const notaFiscalData = await fetchSheetData("NOTA FISCAL");
-        if (!notaFiscalData || !Array.isArray(notaFiscalData)) {
-            return [];
-        }
-
-        const notasInfo = [];
-        
-        // Procura por linhas que contêm informações de notas fiscais
-        for (let row of notaFiscalData) {
-            if (row && Array.isArray(row) && row.length > 0) {
-                const firstCell = String(row[0]).trim();
+            } else if (sheetName === "CONTAGEM LOJA") {
+                headers = ["Código de Barras", "Descrição"]; 
+                targetElementId = 'dynamic-table-content-contagem';
                 
-                // Verifica se é uma linha de informação de nota fiscal
-                if (firstCell.startsWith('NF:') && firstCell.includes('Data:') && firstCell.includes('Pedido:') && firstCell.includes('Chave:')) {
-                    notasInfo.push(firstCell);
+                setTimeout(() => {
+                    const contadorButtons = document.querySelectorAll('.contador-button');
+                    contadorButtons.forEach(button => {
+                        button.addEventListener('click', function() {
+                            switchContador(this.getAttribute('data-contador'));
+                        });
+                    });
+                }, 100);
+                
+                if (!notaFiscalData) {
+                    await loadNotaFiscalDataForCache();
+                }
+                
+                const targetElement = document.getElementById(targetElementId);
+                if (targetElement) {
+                    targetElement.innerHTML = renderContagemTableFixedRows(data, headers);
+                    
+                    updatePendingCount();
+                    
+                    startCacheChangeMonitor();
+                    
+                    setTimeout(() => {
+                        requestAnimationFrame(focusNextEmptyContagemCell);
+                    }, 100); 
+                }
+
+            } else if (sheetName === "CONFERENCIA") {
+                headers = ["Código de Barras", "Descrição do Produto", "Quantidade NF", "Contagem Loja", "Diferença", "OBS"]; 
+                targetElementId = 'dynamic-table-content-conferencia';
+                
+                const targetElement = document.getElementById(targetElementId);
+                if (targetElement) {
+                    // ✅ BUSCA AS INFORMAÇÕES DAS NOTAS FISCAIS
+                    const notasFiscaisInfo = await getNotasFiscaisInfo();
+                    targetElement.innerHTML = renderConferenciaTableWithNotasInfo(sheetName, data, headers, notasFiscaisInfo);
+                    
+                    setTimeout(() => {
+                        applyConferenciaStyles(headers.length);
+                    }, 0);
                 }
             }
         }
-        
-        console.log(`✅ Encontradas ${notasInfo.length} notas fiscais na aba NOTA FISCAL`);
-        return notasInfo;
-        
-    } catch (error) {
-        console.error("Erro ao buscar informações das notas fiscais:", error);
-        return [];
-    }
-}
 
-/**
- * ✅ NOVA FUNÇÃO: Renderiza tabela da CONFERENCIA com informações das notas fiscais
- */
-function renderConferenciaTableWithNotasInfo(sheetName, data, headers, notasFiscaisInfo) {
-    if (!data || data.length === 0) {
-        return `<p class="text-center text-gray-500 py-10">Nenhum dado encontrado no Google Sheets para esta aba.</p>`;
-    }
+        /**
+         * ✅ NOVA FUNÇÃO: Busca informações das notas fiscais da aba NOTA FISCAL
+         */
+        async function getNotasFiscaisInfo() {
+            try {
+                const notaFiscalData = await fetchSheetData("NOTA FISCAL");
+                if (!notaFiscalData || !Array.isArray(notaFiscalData)) {
+                    return [];
+                }
 
-    const isConferencia = sheetName === "CONFERENCIA";
-    const isStatusEditable = isConferencia;
-    
-    let tableID = 'conferencia-table';
-
-    let html = `
-        <div class="rounded-lg border border-gray-200 overflow-x-auto shadow-sm">
-            <table class="mock-table w-full text-sm" id="${tableID}">
-                <thead class="bg-gray-50 sticky top-0">
-    `;
-    
-    // ✅ ADICIONA LINHAS COM INFORMAÇÕES DAS NOTAS FISCAIS
-    if (notasFiscaisInfo.length > 0) {
-        html += `<tr class="bg-blue-50 border-b border-blue-200">`;
-        html += `<td colspan="${headers.length}" class="p-3 text-sm font-semibold text-blue-800">`;
-        html += `<div class="flex items-center space-x-2">`;
-        html += `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">`;
-        html += `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />`;
-        html += `</svg>`;
-        html += `<span>Notas Fiscais na Conferência (${notasFiscaisInfo.length})</span>`;
-        html += `</div>`;
-        html += `</td>`;
-        html += `</tr>`;
-        
-        // Adiciona cada nota fiscal como uma linha separada
-        notasFiscaisInfo.forEach((info, index) => {
-            html += `<tr class="bg-blue-25 border-b border-blue-100">`;
-            html += `<td colspan="${headers.length}" class="p-2 text-xs text-blue-700 font-medium">`;
-            html += `${info}`;
-            html += `</td>`;
-            html += `</tr>`;
-        });
-        
-        // Linha em branco para separação
-        html += `<tr class="bg-gray-100"><td colspan="${headers.length}" class="p-1"></td></tr>`;
-    }
-
-    // CABEÇALHOS NORMAIS
-    html += `<tr>`;
-    headers.forEach(h => {
-        html += `<th class="w-auto whitespace-nowrap">${h}</th>`;
-    });
-    html += `</tr></thead><tbody>`;
-
-    let dataRows = data;
-    
-    if (data.length > 0 && headers.length > 0 && String(data[0][0]) === headers[0]) {
-        dataRows = data.slice(1);
-    }
-
-    dataRows.forEach((row, rowIndex) => {
-        const isRowEmpty = row.length === 0 || row.every(cell => !cell || String(cell).trim() === '');
-        if (isRowEmpty) return; 
-
-        const sheetRowIndex = (data[0][0] === headers[0] ? rowIndex + 2 : rowIndex + 1);
-        
-        html += `<tr data-row-index="${sheetRowIndex}">`;
-        
-        for (let i = 0; i < headers.length; i++) {
-            const cellValue = row[i] !== undefined ? row[i] : '';
-            
-            const sheetCol = String.fromCharCode(65 + i);
-            const sheetRange = `${sheetCol}${sheetRowIndex}`;
-
-            let editAttributes = '';
-            let cellClasses = '';
-
-            const isCellEditable = (isStatusEditable && i === 5);
-
-            if (isCellEditable) {
-                editAttributes = `contenteditable="true"
-                                 onblur="handleCellEdit(this, '${sheetRange}', '${sheetName}')"
-                                 data-original-value="${cellValue}"
-                                 data-sheet-range="${sheetRange}"`;
+                const notasInfo = [];
                 
-                cellClasses = 'cursor-text hover:bg-indigo-50/50 focus:bg-indigo-100 border border-transparent focus:border-indigo-400 transition';
+                // Procura por linhas que contêm informações de notas fiscais
+                for (let row of notaFiscalData) {
+                    if (row && Array.isArray(row) && row.length > 0) {
+                        const firstCell = String(row[0]).trim();
+                        
+                        // Verifica se é uma linha de informação de nota fiscal
+                        if (firstCell.startsWith('NF:') && firstCell.includes('Data:') && firstCell.includes('Pedido:') && firstCell.includes('Chave:')) {
+                            notasInfo.push(firstCell);
+                        }
+                    }
+                }
+                
+                console.log(`✅ Encontradas ${notasInfo.length} notas fiscais na aba NOTA FISCAL`);
+                return notasInfo;
+                
+            } catch (error) {
+                console.error("Erro ao buscar informações das notas fiscais:", error);
+                return [];
             }
-            
-            let columnsToExpand = [];
-            if (isConferencia) {
-                 columnsToExpand = [1, 2, 3, 4, 5, 6]; 
-            }
-            
-            if (columnsToExpand.includes(i + 1)) { 
-                 cellClasses += ' expand-mode-cell'; 
+        }
+
+        /**
+         * ✅ NOVA FUNÇÃO: Renderiza tabela da CONFERENCIA com informações das notas fiscais
+         */
+        function renderConferenciaTableWithNotasInfo(sheetName, data, headers, notasFiscaisInfo) {
+            if (!data || data.length === 0) {
+                return `<p class="text-center text-gray-500 py-10">Nenhum dado encontrado no Google Sheets para esta aba.</p>`;
             }
 
-            html += `<td ${editAttributes} class="${cellClasses}">${cellValue}</td>`;
+            const isConferencia = sheetName === "CONFERENCIA";
+            const isStatusEditable = isConferencia;
+            
+            let tableID = 'conferencia-table';
+
+            let html = `
+                <div class="rounded-lg border border-gray-200 overflow-x-auto shadow-sm">
+                    <table class="mock-table w-full text-sm" id="${tableID}">
+                        <thead class="bg-gray-50 sticky top-0">
+            `;
+            
+            // ✅ ADICIONA LINHAS COM INFORMAÇÕES DAS NOTAS FISCAIS
+            if (notasFiscaisInfo.length > 0) {
+                html += `<tr class="bg-blue-50 border-b border-blue-200">`;
+                html += `<td colspan="${headers.length}" class="p-3 text-sm font-semibold text-blue-800">`;
+                html += `<div class="flex items-center space-x-2">`;
+                html += `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">`;
+                html += `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />`;
+                html += `</svg>`;
+                html += `<span>Notas Fiscais na Conferência (${notasFiscaisInfo.length})</span>`;
+                html += `</div>`;
+                html += `</td>`;
+                html += `</tr>`;
+                
+                // Adiciona cada nota fiscal como uma linha separada
+                notasFiscaisInfo.forEach((info, index) => {
+                    html += `<tr class="bg-blue-25 border-b border-blue-100">`;
+                    html += `<td colspan="${headers.length}" class="p-2 text-xs text-blue-700 font-medium">`;
+                    html += `${info}`;
+                    html += `</td>`;
+                    html += `</tr>`;
+                });
+                
+                // Linha em branco para separação
+                html += `<tr class="bg-gray-100"><td colspan="${headers.length}" class="p-1"></td></tr>`;
+            }
+
+            // CABEÇALHOS NORMAIS
+            html += `<tr>`;
+            headers.forEach(h => {
+                html += `<th class="w-auto whitespace-nowrap">${h}</th>`;
+            });
+            html += `</tr></thead><tbody>`;
+
+            let dataRows = data;
+            
+            if (data.length > 0 && headers.length > 0 && String(data[0][0]) === headers[0]) {
+                dataRows = data.slice(1);
+            }
+
+            dataRows.forEach((row, rowIndex) => {
+                const isRowEmpty = row.length === 0 || row.every(cell => !cell || String(cell).trim() === '');
+                if (isRowEmpty) return; 
+
+                const sheetRowIndex = (data[0][0] === headers[0] ? rowIndex + 2 : rowIndex + 1);
+                
+                html += `<tr data-row-index="${sheetRowIndex}">`;
+                
+                for (let i = 0; i < headers.length; i++) {
+                    const cellValue = row[i] !== undefined ? row[i] : '';
+                    
+                    const sheetCol = String.fromCharCode(65 + i);
+                    const sheetRange = `${sheetCol}${sheetRowIndex}`;
+
+                    let editAttributes = '';
+                    let cellClasses = '';
+
+                    const isCellEditable = (isStatusEditable && i === 5);
+
+                    if (isCellEditable) {
+                        editAttributes = `contenteditable="true"
+                                         onblur="handleCellEdit(this, '${sheetRange}', '${sheetName}')"
+                                         data-original-value="${cellValue}"
+                                         data-sheet-range="${sheetRange}"`;
+                        
+                        cellClasses = 'cursor-text hover:bg-indigo-50/50 focus:bg-indigo-100 border border-transparent focus:border-indigo-400 transition';
+                    }
+                    
+                    let columnsToExpand = [];
+                    if (isConferencia) {
+                         columnsToExpand = [1, 2, 3, 4, 5, 6]; 
+                    }
+                    
+                    if (columnsToExpand.includes(i + 1)) { 
+                         cellClasses += ' expand-mode-cell'; 
+                    }
+
+                    html += `<td ${editAttributes} class="${cellClasses}">${cellValue}</td>`;
+                }
+                html += `</tr>`;
+            });
+            
+            html += `</tbody></table></div>`;
+            return html;
         }
-        html += `</tr>`;
-    });
-    
-    html += `</tbody></table></div>`;
-    return html;
-}
+
         /**
          * Carrega os dados da Nota Fiscal especificamente para o cache de busca
          */
@@ -1867,121 +1873,98 @@ function renderConferenciaTableWithNotasInfo(sheetName, data, headers, notasFisc
         }
 
         /**
-         * ✅ FUNÇÃO CORRIGIDA: Importa XML por chave ignorando espaços
+         * ✅ FUNÇÃO CORRIGIDA: Importa XML por chave ignorando espaços E EXIBE INFORMAÇÕES
          */
-        /**
- * ✅ FUNÇÃO CORRIGIDA: Importa XML por chave ignorando espaços E EXIBE INFORMAÇÕES
- */
+        async function importarXMLPorChave() {
+            const chaveInput = document.getElementById("chave-acesso-input");
+            if (!chaveInput) {
+                showNotification("Campo de chave não encontrado.", "error");
+                return;
+            }
+            
+            let chaveAcesso = chaveInput.value.replace(/\s+/g, '');
+            
+            if (!chaveAcesso || chaveAcesso.length !== 44) {
+                showNotification(`Chave de acesso inválida. Deve conter 44 dígitos. (Atual: ${chaveAcesso.length} dígitos)`, "warning");
+                return;
+            }
 
-async function importarXMLPorChave() {
-    const chaveInput = document.getElementById("chave-acesso-input");
-    if (!chaveInput) {
-        showNotification("Campo de chave não encontrado.", "error");
-        return;
-    }
-    
-    let chaveAcesso = chaveInput.value.replace(/\s+/g, '');
-    
-    if (!chaveAcesso || chaveAcesso.length !== 44) {
-        showNotification(`Chave de acesso inválida. Deve conter 44 dígitos. (Atual: ${chaveAcesso.length} dígitos)`, "warning");
-        return;
-    }
+            // ✅ VERIFICAÇÃO DE DUPLICIDADE - Busca na planilha atual
+            const currentData = await fetchSheetData("NOTA FISCAL");
+            const chaveExists = checkIfChaveExists(currentData, chaveAcesso);
+            
+            if (chaveExists) {
+                showNotification("Esta nota fiscal já foi importada anteriormente!", "error");
+                return;
+            }
 
-    // ✅ VERIFICAÇÃO DE DUPLICIDADE - Busca na planilha atual
-    const currentData = await fetchSheetData("NOTA FISCAL");
-    const chaveExists = checkIfChaveExists(currentData, chaveAcesso);
-    
-    if (chaveExists) {
-        showNotification("Esta nota fiscal já foi importada anteriormente!", "error");
-        return;
-    }
+            showNotification("Importando XML pela chave de acesso...", "loading");
 
-    showNotification("Importando XML pela chave de acesso...", "loading");
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/importar-xml-chave`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: 'include',
+                    body: JSON.stringify({ chaveAcesso })
+                });
 
-    try {
-        const response = await fetch(`${BACKEND_URL}/api/importar-xml-chave`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: 'include',
-            body: JSON.stringify({ chaveAcesso })
-        });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`HTTP ${response.status}: ${errorText}`);
-        }
+                const result = await response.json();
+                
+                if (result.error) {
+                    hideNotification();
+                    showNotification(`Erro: ${result.error}`, "error");
+                    return;
+                }
 
-        const result = await response.json();
-        
-        if (result.error) {
-            hideNotification();
-            showNotification(`Erro: ${result.error}`, "error");
-            return;
-        }
+                hideNotification();
+                showNotification(result.message, "success", 5000);
 
-        hideNotification();
-        showNotification(result.message, "success", 5000);
+                chaveInput.value = '';
+                hidePasteModal();
+                
+                setTimeout(() => {
+                    switchTab("NOTA FISCAL");
+                }, 1000);
 
-        chaveInput.value = '';
-        hidePasteModal();
-        
-        setTimeout(() => {
-            switchTab("NOTA FISCAL");
-        }, 1000);
-
-    } catch (error) {
-        hideNotification();
-        console.error("Erro ao importar XML por chave:", error);
-        
-        if (error.message.includes('NetworkError') || error.message.includes('Failed to fetch')) {
-            showNotification("Erro de conexão com o servidor. Verifique sua internet.", "error");
-        } else {
-            showNotification(`Erro: ${error.message}`, "error");
-        }
-    }
-}
-
-/**
- * ✅ FUNÇÃO AUXILIAR: Verifica se a chave já existe nos dados atuais
- */
-function checkIfChaveExists(data, chaveAcesso) {
-    if (!data || !Array.isArray(data)) return false;
-    
-    // Converte a chave para o formato que aparece na planilha ("Chave: XXXXXXXXXXXXXXXXX")
-    const chaveFormatada = `Chave: ${chaveAcesso}`;
-    
-    // Procura em todas as linhas
-    for (let row of data) {
-        if (row && Array.isArray(row)) {
-            for (let cell of row) {
-                if (cell && String(cell).includes(chaveFormatada)) {
-                    return true;
+            } catch (error) {
+                hideNotification();
+                console.error("Erro ao importar XML por chave:", error);
+                
+                if (error.message.includes('NetworkError') || error.message.includes('Failed to fetch')) {
+                    showNotification("Erro de conexão com o servidor. Verifique sua internet.", "error");
+                } else {
+                    showNotification(`Erro: ${error.message}`, "error");
                 }
             }
         }
-    }
-    return false;
-}
 
-/**
- * ✅ FUNÇÃO AUXILIAR: Busca dados da planilha
- */
-async function fetchSheetData(sheetName) {
-    try {
-        const response = await fetch(`${BACKEND_URL}/api/fetch-sheet-data`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ sheet_name: sheetName })
-        });
+        /**
+         * ✅ FUNÇÃO AUXILIAR: Verifica se a chave já existe nos dados atuais
+         */
+        function checkIfChaveExists(data, chaveAcesso) {
+            if (!data || !Array.isArray(data)) return false;
+            
+            // Converte a chave para o formato que aparece na planilha ("Chave: XXXXXXXXXXXXXXXXX")
+            const chaveFormatada = `Chave: ${chaveAcesso}`;
+            
+            // Procura em todas as linhas
+            for (let row of data) {
+                if (row && Array.isArray(row)) {
+                    for (let cell of row) {
+                        if (cell && String(cell).includes(chaveFormatada)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
 
-        const result = await response.json();
-        return result.data || [];
-    } catch (error) {
-        console.error("Erro ao buscar dados:", error);
-        return [];
-    }
-}
         /**
          * Função CRUCIAL: Envia o novo valor da célula editável para o Google Sheets.
          */
@@ -2131,51 +2114,51 @@ async function fetchSheetData(sheetName) {
         }
 
 
-		/**
- * Extrai informações específicas do XML
- */
-function extrairInformacoesXML(xmlContent) {
-    try {
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(xmlContent, "text/xml");
-        
-        // Extrai Pedido Capta
-        const xPedElement = xmlDoc.getElementsByTagName('xPed')[0];
-        const pedidoCapta = xPedElement ? xPedElement.textContent : 'Não encontrado';
-        
-        // Extrai Número da Nota Fiscal
-        const nNFElement = xmlDoc.getElementsByTagName('nNF')[0];
-        const numeroNota = nNFElement ? nNFElement.textContent : 'Não encontrado';
-        
-        // Extrai Data de Emissão (apenas a parte da data)
-        const dhEmiElement = xmlDoc.getElementsByTagName('dhEmi')[0];
-        let dataEmissao = 'Não encontrada';
-        if (dhEmiElement) {
-            const dataCompleta = dhEmiElement.textContent;
-            // Extrai apenas a parte da data (YYYY-MM-DD)
-            dataEmissao = dataCompleta.split('T')[0];
+        /**
+         * Extrai informações específicas do XML
+         */
+        function extrairInformacoesXML(xmlContent) {
+            try {
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlContent, "text/xml");
+                
+                // Extrai Pedido Capta
+                const xPedElement = xmlDoc.getElementsByTagName('xPed')[0];
+                const pedidoCapta = xPedElement ? xPedElement.textContent : 'Não encontrado';
+                
+                // Extrai Número da Nota Fiscal
+                const nNFElement = xmlDoc.getElementsByTagName('nNF')[0];
+                const numeroNota = nNFElement ? nNFElement.textContent : 'Não encontrado';
+                
+                // Extrai Data de Emissão (apenas a parte da data)
+                const dhEmiElement = xmlDoc.getElementsByTagName('dhEmi')[0];
+                let dataEmissao = 'Não encontrada';
+                if (dhEmiElement) {
+                    const dataCompleta = dhEmiElement.textContent;
+                    // Extrai apenas a parte da data (YYYY-MM-DD)
+                    dataEmissao = dataCompleta.split('T')[0];
+                }
+                
+                // Extrai Chave de Acesso (opcional - para confirmar)
+                const chaveElement = xmlDoc.getElementsByTagName('chNFe')[0];
+                const chaveAcesso = chaveElement ? chaveElement.textContent : 'Não encontrada';
+                
+                return {
+                    pedidoCapta,
+                    numeroNota,
+                    dataEmissao,
+                    chaveAcesso
+                };
+            } catch (error) {
+                console.error('Erro ao extrair informações do XML:', error);
+                return {
+                    pedidoCapta: 'Erro na extração',
+                    numeroNota: 'Erro na extração',
+                    dataEmissao: 'Erro na extração',
+                    chaveAcesso: 'Erro na extração'
+                };
+            }
         }
-        
-        // Extrai Chave de Acesso (opcional - para confirmar)
-        const chaveElement = xmlDoc.getElementsByTagName('chNFe')[0];
-        const chaveAcesso = chaveElement ? chaveElement.textContent : 'Não encontrada';
-        
-        return {
-            pedidoCapta,
-            numeroNota,
-            dataEmissao,
-            chaveAcesso
-        };
-    } catch (error) {
-        console.error('Erro ao extrair informações do XML:', error);
-        return {
-            pedidoCapta: 'Erro na extração',
-            numeroNota: 'Erro na extração',
-            dataEmissao: 'Erro na extração',
-            chaveAcesso: 'Erro na extração'
-        };
-    }
-}
 
         // --- Funções de Modal e Notificação (Tailwind) ---
 
@@ -2254,7 +2237,7 @@ function extrairInformacoesXML(xmlContent) {
                 }, 300);
             });
         }
-	
+    
         /**
          * Alterna entre mostrar e ocultar a senha
          */
@@ -2275,71 +2258,72 @@ function extrairInformacoesXML(xmlContent) {
         }
 
        function handleFileUploadChange(event) {
-    const file = event.target.files[0];
-    if (!file) return;
+            const file = event.target.files[0];
+            if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = async function(e) {
-        const xmlContent = e.target.result;
-        
-        // ✅ EXTRAI A CHAVE DO XML PARA VERIFICAÇÃO DE DUPLICIDADE
-        const chaveAcesso = extractChaveFromXML(xmlContent);
-        if (chaveAcesso) {
-            const currentData = await fetchSheetData("NOTA FISCAL");
-            const chaveExists = checkIfChaveExists(currentData, chaveAcesso);
-            
-            if (chaveExists) {
-                showNotification("Esta nota fiscal já foi importada anteriormente!", "error");
-                event.target.value = null;
-                return;
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const xmlContent = e.target.result;
+                
+                // ✅ EXTRAI A CHAVE DO XML PARA VERIFICAÇÃO DE DUPLICIDADE
+                const chaveAcesso = extractChaveFromXML(xmlContent);
+                if (chaveAcesso) {
+                    const currentData = await fetchSheetData("NOTA FISCAL");
+                    const chaveExists = checkIfChaveExists(currentData, chaveAcesso);
+                    
+                    if (chaveExists) {
+                        showNotification("Esta nota fiscal já foi importada anteriormente!", "error");
+                        event.target.value = null;
+                        return;
+                    }
+                }
+
+                showNotification("Enviando XML para importação...", "loading");
+                
+                try {
+                    const response = await fetch(`${BACKEND_URL}/api/import-xml-data`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ xml_content: xmlContent, user_id: USER_ID })
+                    });
+
+                    const result = await response.json();
+                    hideNotification();
+
+                    if (!response.ok || result.error) {
+                        showNotification(`Falha na Importação: ${result.error || 'Erro desconhecido do servidor.'}`, 'error');
+                    } else {
+                        showNotification(result.message, 'success', 5000);
+                        switchTab("NOTA FISCAL");
+                    }
+
+                } catch (error) {
+                    hideNotification();
+                    console.error("Erro de Rede:", error);
+                    showNotification("Erro de Rede ao tentar conectar com o servidor.", 'error');
+                }
+            };
+            reader.onerror = function() {
+                showNotification("Erro ao ler o arquivo XML.", 'error');
+            };
+            reader.readAsText(file);
+            event.target.value = null;
+        }
+
+        /**
+         * ✅ FUNÇÃO AUXILIAR: Extrai chave de acesso do XML
+         */
+        function extractChaveFromXML(xmlContent) {
+            try {
+                const match = xmlContent.match(/<infNFe[^>]*Id="NFe([^"]+)"/);
+                return match ? match[1] : null;
+            } catch (error) {
+                console.error("Erro ao extrair chave do XML:", error);
+                return null;
             }
         }
 
-        showNotification("Enviando XML para importação...", "loading");
-        
-        try {
-            const response = await fetch(`${BACKEND_URL}/api/import-xml-data`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({ xml_content: xmlContent, user_id: USER_ID })
-            });
-
-            const result = await response.json();
-            hideNotification();
-
-            if (!response.ok || result.error) {
-                showNotification(`Falha na Importação: ${result.error || 'Erro desconhecido do servidor.'}`, 'error');
-            } else {
-                showNotification(result.message, 'success', 5000);
-                switchTab("NOTA FISCAL");
-            }
-
-        } catch (error) {
-            hideNotification();
-            console.error("Erro de Rede:", error);
-            showNotification("Erro de Rede ao tentar conectar com o servidor.", 'error');
-        }
-    };
-    reader.onerror = function() {
-        showNotification("Erro ao ler o arquivo XML.", 'error');
-    };
-    reader.readAsText(file);
-    event.target.value = null;
-}
-
-/**
- * ✅ FUNÇÃO AUXILIAR: Extrai chave de acesso do XML
- */
-function extractChaveFromXML(xmlContent) {
-    try {
-        const match = xmlContent.match(/<infNFe[^>]*Id="NFe([^"]+)"/);
-        return match ? match[1] : null;
-    } catch (error) {
-        console.error("Erro ao extrair chave do XML:", error);
-        return null;
-    }
-}
         // --- Inicialização ---
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -2368,201 +2352,198 @@ function extractChaveFromXML(xmlContent) {
             initializeApp();
         });
 
-	// Substitui a função de impressão
-// ✅ DETECTA SE ESTÁ NO APK ANDROID E CONFIGURA IMPRESSÃO
-function setupAndroidPrint() {
-    // Verifica se está no APK Android (interface Android existe)
-    const isAndroidApp = typeof Android !== 'undefined';
-    
-    if (isAndroidApp) {
-        console.log("📱 APK Android detectado - Configurando impressão...");
-        
-        // Substitui a função de impressão padrão
-        const originalPrint = window.print;
-        
-        window.print = function() {
+        // ✅ DETECTA SE ESTÁ NO APK ANDROID E CONFIGURA IMPRESSÃO
+        function setupAndroidPrint() {
+            // Verifica se está no APK Android (interface Android existe)
+            const isAndroidApp = typeof Android !== 'undefined';
+            
             if (isAndroidApp) {
-                // Usa a função nativa do Android
-                Android.printConferencia();
-                return true;
-            } else {
-                // Fallback para impressão normal do navegador
-                return originalPrint();
-            }
-        };
-        
-        // Também intercepta cliques no botão "Imprimir Conferência"
-        document.addEventListener('click', function(e) {
-            const target = e.target;
-            if (target.textContent.includes('Imprimir Conferência') || 
-                target.textContent.includes('imprimir conferência') ||
-                target.onclick && target.onclick.toString().includes('printConferencia')) {
+                console.log("📱 APK Android detectado - Configurando impressão...");
                 
-                if (isAndroidApp) {
-                    e.preventDefault();
-                    Android.printConferencia();
-                }
-            }
-        });
-        
-        console.log("✅ Impressão Android configurada com sucesso!");
-    }
-}
-
-// ✅ EXECUTA QUANDO A PÁGINA CARREGA
-document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(setupAndroidPrint, 1000);
-});
-
-// ✅ TAMBÉM EXECUTA QUANDO A PÁGINA ESTIVER COMPLETAMENTE CARREGADA
-window.addEventListener('load', function() {
-    setTimeout(setupAndroidPrint, 500);
-});
-
-// ✅ FUNÇÃO EXPORTAR PARA EXCEL (MELHORADA - FUNCIONAL)
-function exportarParaExcel() {
-    const isAndroidApp = typeof Android !== 'undefined';
-    
-    if (isAndroidApp) {
-        Android.exportarParaExcel();
-    } else {
-        // No navegador - exporta diretamente
-        exportarCSVNoNavegador();
-    }
-}
-
-// ✅ FUNÇÃO PARA EXPORTAR CSV NO NAVEGADOR
-// ✅ FUNÇÃO PARA EXPORTAR CSV NO NAVEGADOR (CORRIGIDA)
-// ✅ FUNÇÃO PARA EXPORTAR CSV NO NAVEGADOR (CORRIGIDA - CÓDIGOS DE BARRAS FORMATADOS)
-function exportarCSVNoNavegador() {
-    try {
-        const tabela = document.getElementById('conferencia-table');
-        if (!tabela) {
-            showNotification('Tabela de conferência não encontrada', 'error');
-            return;
-        }
-        
-        let csv = [];
-        
-        // ✅ ADICIONA BOM (Byte Order Mark) para UTF-8 - IMPORTANTE!
-        const BOM = "\uFEFF";
-        
-        // Cabeçalhos
-        const cabecalhos = Array.from(tabela.querySelectorAll('thead th'))
-            .map(th => {
-                let texto = th.textContent.trim();
-                texto = texto.replace(/"/g, '""');
-                return `"${texto}"`;
-            });
-        csv.push(cabecalhos.join(';'));
-        
-        // Dados
-        const linhas = tabela.querySelectorAll('tbody tr');
-        linhas.forEach(linha => {
-            const celulas = Array.from(linha.querySelectorAll('td'))
-                .map((td, index) => {
-                    let texto = td.textContent.trim();
-                    
-                    // ✅ CORREÇÃO: Para a primeira coluna (Código de Barras), formata como texto
-                    if (index === 0 && texto) {
-                        // Força o Excel a tratar como texto adicionando tab no início
-                        texto = "\t" + texto;
+                // Substitui a função de impressão padrão
+                const originalPrint = window.print;
+                
+                window.print = function() {
+                    if (isAndroidApp) {
+                        // Usa a função nativa do Android
+                        Android.printConferencia();
+                        return true;
+                    } else {
+                        // Fallback para impressão normal do navegador
+                        return originalPrint();
                     }
-                    
-                    texto = texto.replace(/"/g, '""');
-                    texto = texto.replace(/\n/g, ' ');
-                    texto = texto.replace(/\r/g, ' ');
-                    return `"${texto}"`;
+                };
+                
+                // Também intercepta cliques no botão "Imprimir Conferência"
+                document.addEventListener('click', function(e) {
+                    const target = e.target;
+                    if (target.textContent.includes('Imprimir Conferência') || 
+                        target.textContent.includes('imprimir conferência') ||
+                        target.onclick && target.onclick.toString().includes('printConferencia')) {
+                        
+                        if (isAndroidApp) {
+                            e.preventDefault();
+                            Android.printConferencia();
+                        }
+                    }
                 });
-            
-            if (celulas.length > 0 && celulas.some(cell => cell !== '""')) {
-                csv.push(celulas.join(';'));
-            }
-        });
-        
-        // ✅ CRIA CSV COM BOM E ENCODING CORRETO
-        const csvContent = BOM + csv.join('\n');
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        
-        a.download = `conferencia_nfe_${Date.now()}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-        
-        showNotification('Arquivo Excel exportado com sucesso!', 'success');
-        
-    } catch (error) {
-        showNotification('Erro ao exportar: ' + error.message, 'error');
-    }
-}
-		
-
-// ✅ FUNÇÃO COMPARTILHAR EM PDF (MELHORADA)
-function compartilharEmPDF() {
-    const isAndroidApp = typeof Android !== 'undefined';
-    
-    if (isAndroidApp) {
-        Android.compartilharEmPDF();
-    } else {
-        // No navegador - instruções claras
-        showNotification('Para salvar como PDF: 1. Clique em Imprimir → 2. Escolha "Salvar como PDF" → 3. Selecione local', 'info', 5000);
-        window.print();
-    }
-}
-
-
-	// ✅ SISTEMA DE LEMBRAR LOGIN NO APK (SEM AUTO-LOGIN)
-function setupLoginRemember() {
-    const isAndroidApp = typeof Android !== 'undefined';
-    
-    if (isAndroidApp) {
-        // Tenta carregar login salvo
-        const savedLogin = Android.carregarLogin();
-        
-        if (savedLogin && savedLogin !== "{}") {
-            try {
-                const loginData = JSON.parse(savedLogin);
-                if (loginData.username && loginData.password) {
-                    // ✅ APENAS PREENCHE OS CAMPOS - SEM AUTO-LOGIN
-                    document.getElementById('username').value = loginData.username;
-                    document.getElementById('password').value = loginData.password;
-                    
-                    // Mostra mensagem que há credenciais salvas
-                    console.log('Credenciais salvas carregadas. Clique em "Entrar" para fazer login.');
-                }
-            } catch (error) {
-                console.log('Erro ao carregar login salvo:', error);
+                
+                console.log("✅ Impressão Android configurada com sucesso!");
             }
         }
-        
-        // Intercepta o login para salvar as credenciais
-        const originalLogin = window.login;
-        window.login = function() {
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value;
-            
-            // Chama login original
-            originalLogin();
-            
-            // Salva credenciais se login for bem-sucedido
-            setTimeout(() => {
-                if (username && password) {
-                    Android.salvarLogin(username, password);
-                }
-            }, 2000);
-        };
-    }
-}
 
-// Executa quando a página carrega
-document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(setupLoginRemember, 500);
-});
-		
+        // ✅ EXECUTA QUANDO A PÁGINA CARREGA
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(setupAndroidPrint, 1000);
+        });
+
+        // ✅ TAMBÉM EXECUTA QUANDO A PÁGINA ESTIVER COMPLETAMENTE CARREGADA
+        window.addEventListener('load', function() {
+            setTimeout(setupAndroidPrint, 500);
+        });
+
+        // ✅ FUNÇÃO EXPORTAR PARA EXCEL (MELHORADA - FUNCIONAL)
+        function exportarParaExcel() {
+            const isAndroidApp = typeof Android !== 'undefined';
+            
+            if (isAndroidApp) {
+                Android.exportarParaExcel();
+            } else {
+                // No navegador - exporta diretamente
+                exportarCSVNoNavegador();
+            }
+        }
+
+        // ✅ FUNÇÃO PARA EXPORTAR CSV NO NAVEGADOR (CORRIGIDA - CÓDIGOS DE BARRAS FORMATADOS)
+        function exportarCSVNoNavegador() {
+            try {
+                const tabela = document.getElementById('conferencia-table');
+                if (!tabela) {
+                    showNotification('Tabela de conferência não encontrada', 'error');
+                    return;
+                }
+                
+                let csv = [];
+                
+                // ✅ ADICIONA BOM (Byte Order Mark) para UTF-8 - IMPORTANTE!
+                const BOM = "\uFEFF";
+                
+                // Cabeçalhos
+                const cabecalhos = Array.from(tabela.querySelectorAll('thead th'))
+                    .map(th => {
+                        let texto = th.textContent.trim();
+                        texto = texto.replace(/"/g, '""');
+                        return `"${texto}"`;
+                    });
+                csv.push(cabecalhos.join(';'));
+                
+                // Dados
+                const linhas = tabela.querySelectorAll('tbody tr');
+                linhas.forEach(linha => {
+                    const celulas = Array.from(linha.querySelectorAll('td'))
+                        .map((td, index) => {
+                            let texto = td.textContent.trim();
+                            
+                            // ✅ CORREÇÃO: Para a primeira coluna (Código de Barras), formata como texto
+                            if (index === 0 && texto) {
+                                // Força o Excel a tratar como texto adicionando tab no início
+                                texto = "\t" + texto;
+                            }
+                            
+                            texto = texto.replace(/"/g, '""');
+                            texto = texto.replace(/\n/g, ' ');
+                            texto = texto.replace(/\r/g, ' ');
+                            return `"${texto}"`;
+                        });
+                    
+                    if (celulas.length > 0 && celulas.some(cell => cell !== '""')) {
+                        csv.push(celulas.join(';'));
+                    }
+                });
+                
+                // ✅ CRIA CSV COM BOM E ENCODING CORRETO
+                const csvContent = BOM + csv.join('\n');
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                
+                a.download = `conferencia_nfe_${Date.now()}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                
+                showNotification('Arquivo Excel exportado com sucesso!', 'success');
+                
+            } catch (error) {
+                showNotification('Erro ao exportar: ' + error.message, 'error');
+            }
+        }
+                
+
+        // ✅ FUNÇÃO COMPARTILHAR EM PDF (MELHORADA)
+        function compartilharEmPDF() {
+            const isAndroidApp = typeof Android !== 'undefined';
+            
+            if (isAndroidApp) {
+                Android.compartilharEmPDF();
+            } else {
+                // No navegador - instruções claras
+                showNotification('Para salvar como PDF: 1. Clique em Imprimir → 2. Escolha "Salvar como PDF" → 3. Selecione local', 'info', 5000);
+                window.print();
+            }
+        }
+
+
+        // ✅ SISTEMA DE LEMBRAR LOGIN NO APK (SEM AUTO-LOGIN)
+        function setupLoginRemember() {
+            const isAndroidApp = typeof Android !== 'undefined';
+            
+            if (isAndroidApp) {
+                // Tenta carregar login salvo
+                const savedLogin = Android.carregarLogin();
+                
+                if (savedLogin && savedLogin !== "{}") {
+                    try {
+                        const loginData = JSON.parse(savedLogin);
+                        if (loginData.username && loginData.password) {
+                            // ✅ APENAS PREENCHE OS CAMPOS - SEM AUTO-LOGIN
+                            document.getElementById('username').value = loginData.username;
+                            document.getElementById('password').value = loginData.password;
+                            
+                            // Mostra mensagem que há credenciais salvas
+                            console.log('Credenciais salvas carregadas. Clique em "Entrar" para fazer login.');
+                        }
+                    } catch (error) {
+                        console.log('Erro ao carregar login salvo:', error);
+                    }
+                }
+                
+                // Intercepta o login para salvar as credenciais
+                const originalLogin = window.login;
+                window.login = function() {
+                    const username = document.getElementById('username').value.trim();
+                    const password = document.getElementById('password').value;
+                    
+                    // Chama login original
+                    originalLogin();
+                    
+                    // Salva credenciais se login for bem-sucedido
+                    setTimeout(() => {
+                        if (username && password) {
+                            Android.salvarLogin(username, password);
+                        }
+                    }, 2000);
+                };
+            }
+        }
+
+        // Executa quando a página carrega
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(setupLoginRemember, 500);
+        });
+            
     </script>
 </body>
 </html>
