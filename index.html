@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Conferir Nota Fiscal</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- ✅ CACHE BUSTING - FORÇA ATUALIZAÇÃO -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <style>
         .mock-table th, .mock-table td {
             padding: 12px;
@@ -261,7 +266,7 @@
         <div class="max-w-md w-full space-y-8">
             <div class="bg-white p-8 rounded-lg shadow-md">
                 <div class="text-center mb-8">
-                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Sistema de Conferência 1</h1>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Sistema de Conferência</h1>
                     <p class="text-gray-600">Faça login para continuar</p>
                 </div>
                 
@@ -357,104 +362,215 @@
 
     <script>
         // =========================================================================
-        // CONFIGURAÇÃO PARA ONLINE - MUDANÇA PRINCIPAL
+        // ✅ SISTEMA ANTI-CACHE E DEBUG
         // =========================================================================
-        const BACKEND_URL = "https://back-end-nfe.onrender.com"; // URL do backend online
+        
+        console.log("🔄 APP INICIADO - Versão: " + new Date().toISOString());
+        console.log("🔍 User Agent:", navigator.userAgent);
+        console.log("📱 É Android WebView?", isAndroidWebView());
+
+        // ✅ VERIFICA SE ESTÁ NO WEBVIEW ANDROID
+        function isAndroidWebView() {
+            const userAgent = navigator.userAgent.toLowerCase();
+            return userAgent.includes('android') && 
+                   (userAgent.includes('wv') || 
+                    userAgent.includes('webview') ||
+                    typeof Android !== 'undefined');
+        }
+
+        // ✅ LIMPEZA DE CACHE AGGRESSIVA
+        function clearAllCaches() {
+            console.log("🧹 Iniciando limpeza de caches...");
+            
+            // Limpa localStorage seletivamente (mantém apenas login)
+            try {
+                const keysToKeep = ['nfe_login_credentials'];
+                const allKeys = Object.keys(localStorage);
+                
+                for (const key of allKeys) {
+                    if (!keysToKeep.includes(key)) {
+                        localStorage.removeItem(key);
+                    }
+                }
+                console.log('✅ localStorage limpo (exceto login)');
+            } catch (e) {
+                console.log('❌ Erro ao limpar localStorage:', e);
+            }
+
+            // Limpa sessionStorage
+            try {
+                sessionStorage.clear();
+                console.log('✅ sessionStorage limpo');
+            } catch (e) {
+                console.log('❌ Erro ao limpar sessionStorage:', e);
+            }
+
+            // Tenta limpar caches de API
+            if ('caches' in window) {
+                caches.keys().then(function(names) {
+                    for (let name of names) {
+                        caches.delete(name);
+                    }
+                    console.log('✅ Cache API limpo');
+                }).catch(e => {
+                    console.log('❌ Erro ao limpar Cache API:', e);
+                });
+            }
+
+            // Força recarregamento se for WebView Android
+            if (isAndroidWebView()) {
+                console.log("📱 WebView Android detectado - aplicando soluções específicas...");
+                
+                // Solução para WebView - força atualização
+                setTimeout(() => {
+                    if (typeof Android !== 'undefined' && Android.forceReload) {
+                        Android.forceReload();
+                    }
+                }, 1000);
+            }
+        }
+
+        // ✅ VERIFICA VERSÃO DO CACHE
+        function checkCacheVersion() {
+            const CURRENT_VERSION = '2024-01-15-v3';
+            const storedVersion = localStorage.getItem('app_version');
+            
+            if (storedVersion !== CURRENT_VERSION) {
+                console.log(`🔄 Nova versão detectada: ${storedVersion} -> ${CURRENT_VERSION}`);
+                console.log("🧹 Limpando caches antigos...");
+                
+                // Limpa tudo exceto credenciais de login
+                const savedLogin = localStorage.getItem('nfe_login_credentials');
+                localStorage.clear();
+                
+                if (savedLogin) {
+                    localStorage.setItem('nfe_login_credentials', savedLogin);
+                    console.log('✅ Credenciais de login preservadas');
+                }
+                
+                localStorage.setItem('app_version', CURRENT_VERSION);
+                return true; // Cache foi atualizado
+            }
+            return false; // Cache está atualizado
+        }
+
+        // =========================================================================
+        // CONFIGURAÇÃO BACKEND
+        // =========================================================================
+        const BACKEND_URL = "https://back-end-nfe.onrender.com";
         const USER_ID = "web-user-123";
         
         // =========================================================================
-        // SISTEMA DE AUTENTICAÇÃO COM LEMBRAR LOGIN CORRIGIDO
+        // SISTEMA DE AUTENTICAÇÃO - VERSÃO SIMPLIFICADA E ROBUSTA
         // =========================================================================
 
         let currentUser = null;
 
         /**
-         * ✅ SISTEMA DE LEMBRAR LOGIN CORRIGIDO
+         * ✅ SISTEMA DE LEMBRAR LOGIN - VERSÃO FORTE
          */
         function setupLoginRemember() {
-            const isAndroidApp = typeof Android !== 'undefined';
+            console.log("🔧 Iniciando sistema de lembrar login...");
             
+            // Executa limpeza de cache se necessário
+            checkCacheVersion();
+            
+            const isAndroidApp = typeof Android !== 'undefined';
+            console.log("📱 Ambiente:", isAndroidApp ? "Android APK" : "Navegador");
+            
+            let savedLogin = null;
+            let source = '';
+            
+            // PRIMEIRO: Tenta do Android
             if (isAndroidApp) {
-                console.log("📱 APK Android detectado - Configurando lembrança de login...");
+                try {
+                    console.log("📱 Tentando carregar do Android...");
+                    const androidData = Android.carregarLogin();
+                    console.log("📱 Resposta do Android:", androidData);
+                    
+                    if (androidData && androidData !== "{}" && androidData !== "null" && androidData !== "") {
+                        savedLogin = JSON.parse(androidData);
+                        source = 'Android';
+                        console.log('✅ Credenciais carregadas do Android');
+                    }
+                } catch (error) {
+                    console.log('❌ Falha no Android, tentando fallback...', error);
+                }
+            }
+            
+            // SEGUNDO: Fallback para localStorage
+            if (!savedLogin) {
+                try {
+                    const localData = localStorage.getItem('nfe_login_credentials');
+                    if (localData) {
+                        savedLogin = JSON.parse(localData);
+                        source = 'LocalStorage';
+                        console.log('✅ Credenciais carregadas do localStorage');
+                    }
+                } catch (error) {
+                    console.log('❌ Erro no localStorage:', error);
+                }
+            }
+            
+            // TERCEIRO: Se encontrou credenciais, preenche os campos
+            if (savedLogin && savedLogin.username && savedLogin.password) {
+                document.getElementById('username').value = savedLogin.username;
+                document.getElementById('password').value = savedLogin.password;
+                console.log(`✅ Campos preenchidos (Fonte: ${source})`);
                 
-                // Tenta carregar login salvo do Android
-                try {
-                    const savedLogin = Android.carregarLogin();
-                    
-                    if (savedLogin && savedLogin !== "{}") {
-                        const loginData = JSON.parse(savedLogin);
-                        if (loginData.username && loginData.password) {
-                            // ✅ PREENCHE OS CAMPOS AUTOMATICAMENTE
-                            document.getElementById('username').value = loginData.username;
-                            document.getElementById('password').value = loginData.password;
-                            
-                            console.log('✅ Credenciais salvas carregadas do Android');
-                            
-                            // ✅ TENTA LOGIN AUTOMÁTICO APÓS 500ms
-                            setTimeout(() => {
-                                console.log('🔄 Tentando login automático...');
-                                login();
-                            }, 500);
-                        }
-                    }
-                } catch (error) {
-                    console.log('❌ Erro ao carregar login salvo do Android:', error);
-                }
+                // Feedback visual
+                showNotification(`Credenciais carregadas (${source})`, 'success', 2000);
+                
             } else {
-                // No navegador - usa localStorage
-                try {
-                    const savedLogin = localStorage.getItem('nfe_login_credentials');
-                    
-                    if (savedLogin) {
-                        const loginData = JSON.parse(savedLogin);
-                        if (loginData.username && loginData.password) {
-                            // ✅ PREENCHE OS CAMPOS AUTOMATICAMENTE
-                            document.getElementById('username').value = loginData.username;
-                            document.getElementById('password').value = loginData.password;
-                            
-                            console.log('✅ Credenciais salvas carregadas do navegador');
-                            
-                            // ✅ TENTA LOGIN AUTOMÁTICO APÓS 500ms
-                            setTimeout(() => {
-                                console.log('🔄 Tentando login automático...');
-                                login();
-                            }, 500);
-                        }
-                    }
-                } catch (error) {
-                    console.log('❌ Erro ao carregar login salvo do navegador:', error);
-                }
+                console.log('ℹ️ Nenhuma credencial salva encontrada');
+                showNotification('Digite suas credenciais', 'info', 2000);
             }
         }
 
         /**
-         * ✅ SALVAR CREDENCIAIS APÓS LOGIN BEM-SUCEDIDO
+         * ✅ SALVAR CREDENCIAIS - VERSÃO ROBUSTA
          */
         function saveLoginCredentials(username, password) {
             const loginData = {
                 username: username,
                 password: password,
-                timestamp: Date.now()
+                timestamp: Date.now(),
+                source: 'login_success'
             };
             
-            const isAndroidApp = typeof Android !== 'undefined';
+            console.log("💾 Salvando credenciais para:", username);
             
+            const isAndroidApp = typeof Android !== 'undefined';
+            let savedInAndroid = false;
+            let savedInLocalStorage = false;
+            
+            // Salva no Android
             if (isAndroidApp) {
-                // Salva no Android
                 try {
-                    Android.salvarLogin(username, password);
-                    console.log('✅ Credenciais salvas no Android');
+                    Android.salvarLogin(JSON.stringify(loginData));
+                    savedInAndroid = true;
+                    console.log('✅ Salvo no Android');
                 } catch (error) {
-                    console.log('❌ Erro ao salvar credenciais no Android:', error);
+                    console.log('❌ Erro ao salvar no Android:', error);
                 }
+            }
+            
+            // Salva no localStorage (sempre)
+            try {
+                localStorage.setItem('nfe_login_credentials', JSON.stringify(loginData));
+                savedInLocalStorage = true;
+                console.log('✅ Salvo no localStorage');
+            } catch (error) {
+                console.log('❌ Erro ao salvar no localStorage:', error);
+            }
+            
+            // Log do resultado
+            if (savedInAndroid && savedInLocalStorage) {
+                console.log('🎯 Credenciais salvas em ambos os locais');
+            } else if (savedInLocalStorage) {
+                console.log('📱 Credenciais salvas apenas no localStorage');
             } else {
-                // Salva no navegador
-                try {
-                    localStorage.setItem('nfe_login_credentials', JSON.stringify(loginData));
-                    console.log('✅ Credenciais salvas no navegador');
-                } catch (error) {
-                    console.log('❌ Erro ao salvar credenciais no navegador:', error);
-                }
+                console.log('⚠️ Credenciais não foram salvas em nenhum local!');
             }
         }
 
@@ -472,14 +588,14 @@
                 } catch (error) {
                     console.log('❌ Erro ao limpar credenciais no Android:', error);
                 }
-            } else {
-                // Limpa no navegador
-                try {
-                    localStorage.removeItem('nfe_login_credentials');
-                    console.log('✅ Credenciais limpas no navegador');
-                } catch (error) {
-                    console.log('❌ Erro ao limpar credenciais no navegador:', error);
-                }
+            }
+            
+            // Limpa no navegador também
+            try {
+                localStorage.removeItem('nfe_login_credentials');
+                console.log('✅ Credenciais limpas no navegador');
+            } catch (error) {
+                console.log('❌ Erro ao limpar credenciais no navegador:', error);
             }
         }
 
@@ -607,79 +723,119 @@
             startCacheChangeMonitor();
         }
 
-        // Interceptador para verificar autenticação em todas as requisições
-        const originalFetch = window.fetch;
-        window.fetch = async function(...args) {
-            try {
-                const response = await originalFetch.apply(this, args);
-                
-                // Se for 401 em uma rota protegida E usuário está logado
-                if (response.status === 401 && currentUser) {
-                    const url = args[0] || '';
-                    
-                    // Ignora rotas públicas
-                    if (url.includes('/api/login') || url.includes('/api/check-auth')) {
-                        return response;
-                    }
-                    
-                    console.log('🔐 Sessão expirada para rota protegida:', url);
-                    
-                    // Verifica novamente com check-auth para confirmar
-                    const authCheck = await fetch(`${BACKEND_URL}/api/check-auth`, {
-                        method: 'GET',
-                        credentials: 'include'
-                    });
-                    
-                    if (authCheck.status === 401) {
-                        console.log('✅ Confirmação: sessão realmente expirada');
-                        showNotification('Sessão expirada. Faça login novamente.', 'error');
-                        
-                        // Pequeno delay antes do logout
-                        setTimeout(() => {
-                            if (currentUser) {
-                                logout();
-                            }
-                        }, 2000);
-                    } else {
-                        console.log('❌ Falso positivo - sessão ainda válida');
-                        // Não faz logout - pode ser um erro específico da rota
-                    }
-                }
-                
-                return response;
-            } catch (error) {
-                console.error('Erro no interceptador fetch:', error);
-                throw error;
-            }
-        };
+        // =========================================================================
+        // ✅ INICIALIZAÇÃO CORRIGIDA
+        // =========================================================================
 
-        /**
-         * ✅ INICIALIZAÇÃO CORRIGIDA
-         */
         async function initializeApp() {
+            console.log("🚀 INICIALIZANDO APLICATIVO...");
+            
             try {
-                // ✅ PRIMEIRO CONFIGURA O SISTEMA DE LEMBRAR LOGIN
-                setupLoginRemember();
+                // ✅ LIMPEZA DE CACHE (se necessário)
+                clearAllCaches();
                 
-                // ✅ DEPOIS VERIFICA SE JÁ ESTÁ AUTENTICADO
+                // ✅ CONFIGURA LEMBRAR LOGIN (com delay para WebView)
+                setTimeout(() => {
+                    setupLoginRemember();
+                }, 800);
+                
+                // ✅ VERIFICA AUTENTICAÇÃO EXISTENTE
                 const isAuthenticated = await checkAuth();
                 
                 if (isAuthenticated) {
+                    console.log("✅ Usuário já autenticado, mostrando sistema...");
                     showMainSystem();
                     showNotification(`Bem-vindo de volta, ${currentUser}!`, 'success');
                 } else {
+                    console.log("🔐 Usuário não autenticado, mostrando tela de login");
                     document.getElementById('login-screen').classList.remove('hidden');
                     document.getElementById('main-system').classList.add('hidden');
                 }
+                
             } catch (error) {
-                console.error('Erro na inicialização:', error);
+                console.error('💥 Erro crítico na inicialização:', error);
                 document.getElementById('login-screen').classList.remove('hidden');
                 document.getElementById('main-system').classList.add('hidden');
+                
+                // Mostra erro para o usuário
+                showNotification('Erro ao inicializar aplicativo', 'error');
             }
         }
 
         // =========================================================================
-        // FIM DO SISTEMA DE AUTENTICAÇÃO
+        // ✅ BOTÃO DE LIMPEZA DE CACHE (PARA DEBUG)
+        // =========================================================================
+
+        function addCacheClearButton() {
+            // Adiciona um botão hidden para limpar cache quando necessário
+            const clearBtn = document.createElement('button');
+            clearBtn.innerHTML = '🧹';
+            clearBtn.style.position = 'fixed';
+            clearBtn.style.top = '10px';
+            clearBtn.style.left = '10px';
+            clearBtn.style.zIndex = '9999';
+            clearBtn.style.background = 'red';
+            clearBtn.style.color = 'white';
+            clearBtn.style.border = 'none';
+            clearBtn.style.borderRadius = '50%';
+            clearBtn.style.width = '30px';
+            clearBtn.style.height = '30px';
+            clearBtn.style.cursor = 'pointer';
+            clearBtn.style.opacity = '0.3';
+            clearBtn.title = 'Limpar Cache';
+            
+            clearBtn.onclick = function() {
+                if (confirm('LIMPAR TODOS OS CACHES? Isso irá remover todos os dados exceto login.')) {
+                    clearAllCaches();
+                    localStorage.removeItem('nfe_login_credentials');
+                    showNotification('Cache limpo! Recarregue a página.', 'success');
+                    setTimeout(() => {
+                        location.reload(true);
+                    }, 1000);
+                }
+            };
+            
+            document.body.appendChild(clearBtn);
+        }
+
+        // =========================================================================
+        // ✅ INICIALIZAÇÃO FINAL
+        // =========================================================================
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("🎯 DOM Carregado - Iniciando app...");
+            
+            // Adiciona botão de limpeza de cache (apenas para debug)
+            addCacheClearButton();
+            
+            // Configura listeners de teclado
+            document.getElementById('password').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') login();
+            });
+            
+            document.getElementById('username').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') login();
+            });
+
+            // Inicializa com delay para WebView
+            setTimeout(() => {
+                initializeApp();
+            }, 1000);
+        });
+
+        // =========================================================================
+        // ✅ FORÇA ATUALIZAÇÃO PERIÓDICA
+        // =========================================================================
+
+        // Força reload periódico se for WebView (para garantir atualizações)
+        if (isAndroidWebView()) {
+            setInterval(() => {
+                console.log('🔄 Verificando atualizações...');
+            }, 30000);
+        }
+
+        // =========================================================================
+        // [MANTENHA TODAS AS SUAS OUTRAS FUNÇÕES AQUI]
         // =========================================================================
 
         // --- Sistema de Cache para Contagem Loja ---
@@ -2450,35 +2606,6 @@
             }
         }
 
-        // --- Inicialização ---
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const chaveInput = document.getElementById("chave-acesso-input");
-            if (chaveInput) {
-                chaveInput.addEventListener('keydown', function(event) {
-                    if (event.key === 'Enter') {
-                        event.preventDefault(); 
-                        importarXMLPorChave(); 
-                    }
-                });
-            }
-
-            document.getElementById('password').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    login();
-                }
-            });
-            
-            document.getElementById('username').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    login();
-                }
-            });
-            
-            // ✅ INICIALIZA O APP (AGORA COM SISTEMA DE LEMBRAR LOGIN CORRIGIDO)
-            initializeApp();
-        });
-
         // ✅ DETECTA SE ESTÁ NO APK ANDROID E CONFIGURA IMPRESSÃO
         function setupAndroidPrint() {
             // Verifica se está no APK Android (interface Android existe)
@@ -2518,11 +2645,6 @@
                 console.log("✅ Impressão Android configurada com sucesso!");
             }
         }
-
-        // ✅ EXECUTA QUANDO A PÁGINA CARREGA
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(setupAndroidPrint, 1000);
-        });
 
         // ✅ TAMBÉM EXECUTA QUANDO A PÁGINA ESTIVER COMPLETAMENTE CARREGADA
         window.addEventListener('load', function() {
