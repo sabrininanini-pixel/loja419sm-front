@@ -371,44 +371,36 @@
         /**
          * ✅ SISTEMA DE LEMBRAR LOGIN CORRIGIDO
          */
-       function setupLoginRemember() {
+     function setupLoginRemember() {
     const isAndroidApp = typeof Android !== 'undefined';
     
     if (isAndroidApp) {
         console.log("📱 APK Android detectado - Configurando lembrança de login...");
         
-        // Tenta carregar login salvo do Android
         try {
             const savedLogin = Android.carregarLogin();
             
             if (savedLogin && savedLogin !== "{}") {
                 const loginData = JSON.parse(savedLogin);
                 if (loginData.username && loginData.password) {
-                    // ✅ APENAS PREENCHE OS CAMPOS - SEM LOGIN AUTOMÁTICO
                     document.getElementById('username').value = loginData.username;
                     document.getElementById('password').value = loginData.password;
-                    
                     console.log('✅ Credenciais salvas carregadas do Android (sem login automático)');
-                    // ❌ LOGIN AUTOMÁTICO REMOVIDO - APENAS PREENCHE OS CAMPOS
                 }
             }
         } catch (error) {
             console.log('❌ Erro ao carregar login salvo do Android:', error);
         }
     } else {
-        // No navegador - usa localStorage
         try {
             const savedLogin = localStorage.getItem('nfe_login_credentials');
             
             if (savedLogin) {
                 const loginData = JSON.parse(savedLogin);
                 if (loginData.username && loginData.password) {
-                    // ✅ APENAS PREENCHE OS CAMPOS - SEM LOGIN AUTOMÁTICO
                     document.getElementById('username').value = loginData.username;
                     document.getElementById('password').value = loginData.password;
-                    
                     console.log('✅ Credenciais salvas carregadas do navegador (sem login automático)');
-                    // ❌ LOGIN AUTOMÁTICO REMOVIDO - APENAS PREENCHE OS CAMPOS
                 }
             }
         } catch (error) {
@@ -416,7 +408,6 @@
         }
     }
 }
-
         /**
          * ✅ SALVAR CREDENCIAIS APÓS LOGIN BEM-SUCEDIDO
          */
