@@ -369,71 +369,66 @@
         let currentUser = null;
 
         /**
-         * ✅ SISTEMA DE LEMBRAR LOGIN CORRIGIDO PARA ANDROID
+         * ✅ SISTEMA DE LEMBRAR LOGIN CORRIGIDO
          */
         function setupLoginRemember() {
-            console.log("🔧 Configurando sistema de lembrar login...");
-            
-            // Verifica se está no APK Android
             const isAndroidApp = typeof Android !== 'undefined';
-            console.log("📱 Ambiente detectado:", isAndroidApp ? "Android APK" : "Navegador Web");
-            
-            let savedLogin = null;
             
             if (isAndroidApp) {
-                console.log("📱 Tentando carregar login do Android...");
-                try {
-                    // Tenta carregar do Android
-                    const androidData = Android.carregarLogin();
-                    console.log("📱 Dados recebidos do Android:", androidData);
-                    
-                    if (androidData && androidData !== "{}" && androidData !== "null") {
-                        savedLogin = JSON.parse(androidData);
-                        console.log('✅ Credenciais carregadas do Android:', savedLogin);
-                    } else {
-                        console.log('❌ Nenhuma credencial salva no Android');
-                    }
-                } catch (error) {
-                    console.log('❌ Erro ao carregar login do Android:', error);
-                    // Fallback para localStorage se disponível
-                    try {
-                        const localData = localStorage.getItem('nfe_login_credentials');
-                        if (localData) {
-                            savedLogin = JSON.parse(localData);
-                            console.log('✅ Credenciais carregadas do localStorage (fallback)');
-                        }
-                    } catch (fallbackError) {
-                        console.log('❌ Fallback também falhou:', fallbackError);
-                    }
-                }
-            } else {
-                // Ambiente de navegador normal
-                try {
-                    const localData = localStorage.getItem('nfe_login_credentials');
-                    if (localData) {
-                        savedLogin = JSON.parse(localData);
-                        console.log('✅ Credenciais salvas carregadas do navegador');
-                    }
-                } catch (error) {
-                    console.log('❌ Erro ao carregar login do navegador:', error);
-                }
-            }
-            
-            // Preenche os campos se encontrou credenciais salvas
-            if (savedLogin && savedLogin.username && savedLogin.password) {
-                document.getElementById('username').value = savedLogin.username;
-                document.getElementById('password').value = savedLogin.password;
-                console.log('✅ Campos preenchidos com credenciais salvas');
+                console.log("📱 APK Android detectado - Configurando lembrança de login...");
                 
-                // Mostra feedback visual
-                showNotification('Credenciais salvas carregadas', 'success', 2000);
+                // Tenta carregar login salvo do Android
+                try {
+                    const savedLogin = Android.carregarLogin();
+                    
+                    if (savedLogin && savedLogin !== "{}") {
+                        const loginData = JSON.parse(savedLogin);
+                        if (loginData.username && loginData.password) {
+                            // ✅ PREENCHE OS CAMPOS AUTOMATICAMENTE
+                            document.getElementById('username').value = loginData.username;
+                            document.getElementById('password').value = loginData.password;
+                            
+                            console.log('✅ Credenciais salvas carregadas do Android');
+                            
+                            // ✅ TENTA LOGIN AUTOMÁTICO APÓS 500ms
+                            setTimeout(() => {
+                                console.log('🔄 Tentando login automático...');
+                                login();
+                            }, 500);
+                        }
+                    }
+                } catch (error) {
+                    console.log('❌ Erro ao carregar login salvo do Android:', error);
+                }
             } else {
-                console.log('ℹ️ Nenhuma credencial salva encontrada para preencher automaticamente');
+                // No navegador - usa localStorage
+                try {
+                    const savedLogin = localStorage.getItem('nfe_login_credentials');
+                    
+                    if (savedLogin) {
+                        const loginData = JSON.parse(savedLogin);
+                        if (loginData.username && loginData.password) {
+                            // ✅ PREENCHE OS CAMPOS AUTOMATICAMENTE
+                            document.getElementById('username').value = loginData.username;
+                            document.getElementById('password').value = loginData.password;
+                            
+                            console.log('✅ Credenciais salvas carregadas do navegador');
+                            
+                            // ✅ TENTA LOGIN AUTOMÁTICO APÓS 500ms
+                            setTimeout(() => {
+                                console.log('🔄 Tentando login automático...');
+                                login();
+                            }, 500);
+                        }
+                    }
+                } catch (error) {
+                    console.log('❌ Erro ao carregar login salvo do navegador:', error);
+                }
             }
         }
 
         /**
-         * ✅ SALVAR CREDENCIAIS APÓS LOGIN BEM-SUCEDIDO (CORRIGIDA)
+         * ✅ SALVAR CREDENCIAIS APÓS LOGIN BEM-SUCEDIDO
          */
         function saveLoginCredentials(username, password) {
             const loginData = {
@@ -442,27 +437,24 @@
                 timestamp: Date.now()
             };
             
-            console.log("💾 Salvando credenciais para:", username);
-            
             const isAndroidApp = typeof Android !== 'undefined';
             
-            // Tenta salvar em ambos os lugares para redundância
             if (isAndroidApp) {
                 // Salva no Android
                 try {
-                    Android.salvarLogin(JSON.stringify(loginData));
+                    Android.salvarLogin(username, password);
                     console.log('✅ Credenciais salvas no Android');
                 } catch (error) {
                     console.log('❌ Erro ao salvar credenciais no Android:', error);
                 }
-            }
-            
-            // Sempre tenta salvar no localStorage também (como fallback)
-            try {
-                localStorage.setItem('nfe_login_credentials', JSON.stringify(loginData));
-                console.log('✅ Credenciais salvas no localStorage');
-            } catch (error) {
-                console.log('❌ Erro ao salvar credenciais no localStorage:', error);
+            } else {
+                // Salva no navegador
+                try {
+                    localStorage.setItem('nfe_login_credentials', JSON.stringify(loginData));
+                    console.log('✅ Credenciais salvas no navegador');
+                } catch (error) {
+                    console.log('❌ Erro ao salvar credenciais no navegador:', error);
+                }
             }
         }
 
@@ -480,14 +472,14 @@
                 } catch (error) {
                     console.log('❌ Erro ao limpar credenciais no Android:', error);
                 }
-            }
-            
-            // Limpa no navegador também
-            try {
-                localStorage.removeItem('nfe_login_credentials');
-                console.log('✅ Credenciais limpas no navegador');
-            } catch (error) {
-                console.log('❌ Erro ao limpar credenciais no navegador:', error);
+            } else {
+                // Limpa no navegador
+                try {
+                    localStorage.removeItem('nfe_login_credentials');
+                    console.log('✅ Credenciais limpas no navegador');
+                } catch (error) {
+                    console.log('❌ Erro ao limpar credenciais no navegador:', error);
+                }
             }
         }
 
@@ -662,16 +654,12 @@
         };
 
         /**
-         * ✅ INICIALIZAÇÃO CORRIGIDA PARA ANDROID
+         * ✅ INICIALIZAÇÃO CORRIGIDA
          */
         async function initializeApp() {
             try {
-                console.log("🚀 Iniciando aplicação...");
-                
-                // ✅ PRIMEIRO CONFIGURA O SISTEMA DE LEMBRAR LOGIN (com delay para Android)
-                setTimeout(() => {
-                    setupLoginRemember();
-                }, 500);
+                // ✅ PRIMEIRO CONFIGURA O SISTEMA DE LEMBRAR LOGIN
+                setupLoginRemember();
                 
                 // ✅ DEPOIS VERIFICA SE JÁ ESTÁ AUTENTICADO
                 const isAuthenticated = await checkAuth();
@@ -2465,8 +2453,6 @@
         // --- Inicialização ---
 
         document.addEventListener('DOMContentLoaded', function() {
-            console.log("📄 DOM Carregado - Iniciando configuração...");
-            
             const chaveInput = document.getElementById("chave-acesso-input");
             if (chaveInput) {
                 chaveInput.addEventListener('keydown', function(event) {
@@ -2489,13 +2475,8 @@
                 }
             });
             
-            // ✅ INICIALIZA O APP COM TIMEOUT PARA ANDROID
-            setTimeout(() => {
-                initializeApp();
-            }, 1000);
-            
-            // ✅ CONFIGURA IMPRESSÃO ANDROID
-            setTimeout(setupAndroidPrint, 2000);
+            // ✅ INICIALIZA O APP (AGORA COM SISTEMA DE LEMBRAR LOGIN CORRIGIDO)
+            initializeApp();
         });
 
         // ✅ DETECTA SE ESTÁ NO APK ANDROID E CONFIGURA IMPRESSÃO
@@ -2537,6 +2518,11 @@
                 console.log("✅ Impressão Android configurada com sucesso!");
             }
         }
+
+        // ✅ EXECUTA QUANDO A PÁGINA CARREGA
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(setupAndroidPrint, 1000);
+        });
 
         // ✅ TAMBÉM EXECUTA QUANDO A PÁGINA ESTIVER COMPLETAMENTE CARREGADA
         window.addEventListener('load', function() {
