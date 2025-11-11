@@ -261,7 +261,7 @@
         <div class="max-w-md w-full space-y-8">
             <div class="bg-white p-8 rounded-lg shadow-md">
                 <div class="text-center mb-8">
-                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Sistema de Conferência 11</h1>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Sistema de Conferência 5</h1>
                     <p class="text-gray-600">Faça login para continuar</p>
                 </div>
                 
@@ -363,23 +363,34 @@
         const USER_ID = "web-user-123";
         
         // =========================================================================
-        // SISTEMA DE AUTENTICAÇÃO COM LEMBRAR LOGIN CORRIGIDO
+        // SISTEMA DE AUTENTICAÇÃO COM LEMBRAR LOGIN CORRIGIDO PARA ANDROID
         // =========================================================================
 
         let currentUser = null;
 
         /**
-         * ✅ SISTEMA DE LEMBRAR LOGIN CORRIGIDO
+         * ✅ SISTEMA DE LEMBRAR LOGIN CORRIGIDO - VERSÃO ANDROID COMPATÍVEL
          */
         function setupLoginRemember() {
             const isAndroidApp = typeof Android !== 'undefined';
             
+            console.log('🔧 Configurando lembrança de login...', { isAndroidApp });
+            
             if (isAndroidApp) {
                 console.log("📱 APK Android detectado - Configurando lembrança de login...");
                 
-                // Tenta carregar login salvo do Android
+                // ✅ NOTIFICA O ANDROID QUE O WEBVIEW ESTÁ PRONTO
+                try {
+                    Android.webViewPronto();
+                    console.log('✅ Android notificado - WebView pronto');
+                } catch (error) {
+                    console.log('❌ Erro ao notificar Android:', error);
+                }
+                
+                // ✅ TENTA CARREGAR LOGIN SALVO DO ANDROID (MESMO CÓDIGO, MAS COM MAIS LOGS)
                 try {
                     const savedLogin = Android.carregarLogin();
+                    console.log('📦 Login salvo do Android:', savedLogin);
                     
                     if (savedLogin && savedLogin !== "{}") {
                         const loginData = JSON.parse(savedLogin);
@@ -396,6 +407,8 @@
                                 login();
                             }, 500);
                         }
+                    } else {
+                        console.log('📭 Nenhum login salvo encontrado no Android');
                     }
                 } catch (error) {
                     console.log('❌ Erro ao carregar login salvo do Android:', error);
@@ -404,17 +417,16 @@
                 // No navegador - usa localStorage
                 try {
                     const savedLogin = localStorage.getItem('nfe_login_credentials');
+                    console.log('📦 Login salvo do navegador:', savedLogin);
                     
                     if (savedLogin) {
                         const loginData = JSON.parse(savedLogin);
                         if (loginData.username && loginData.password) {
-                            // ✅ PREENCHE OS CAMPOS AUTOMATICAMENTE
                             document.getElementById('username').value = loginData.username;
                             document.getElementById('password').value = loginData.password;
                             
                             console.log('✅ Credenciais salvas carregadas do navegador');
                             
-                            // ✅ TENTA LOGIN AUTOMÁTICO APÓS 500ms
                             setTimeout(() => {
                                 console.log('🔄 Tentando login automático...');
                                 login();
@@ -467,7 +479,7 @@
             if (isAndroidApp) {
                 // Limpa no Android
                 try {
-                    Android.salvarLogin("", "");
+                    Android.limparLogin();
                     console.log('✅ Credenciais limpas no Android');
                 } catch (error) {
                     console.log('❌ Erro ao limpar credenciais no Android:', error);
@@ -654,12 +666,29 @@
         };
 
         /**
+         * ✅ FUNÇÃO PARA VERIFICAR SE O ANDROID ESTÁ PRONTO
+         */
+        function checkAndroidReady() {
+            if (typeof Android !== 'undefined') {
+                console.log('🤖 Android interface detectada, aguardando inicialização...');
+                
+                // Tenta carregar credenciais após um delay maior
+                setTimeout(() => {
+                    setupLoginRemember();
+                }, 1500);
+            } else {
+                console.log('🌐 Navegador normal - procedendo normalmente');
+                setupLoginRemember();
+            }
+        }
+
+        /**
          * ✅ INICIALIZAÇÃO CORRIGIDA
          */
         async function initializeApp() {
             try {
-                // ✅ PRIMEIRO CONFIGURA O SISTEMA DE LEMBRAR LOGIN
-                setupLoginRemember();
+                // ✅ USA A NOVA FUNÇÃO DE INICIALIZAÇÃO
+                checkAndroidReady();
                 
                 // ✅ DEPOIS VERIFICA SE JÁ ESTÁ AUTENTICADO
                 const isAuthenticated = await checkAuth();
@@ -2477,6 +2506,9 @@
             
             // ✅ INICIALIZA O APP (AGORA COM SISTEMA DE LEMBRAR LOGIN CORRIGIDO)
             initializeApp();
+            
+            // Configuração Android
+            setTimeout(setupAndroidPrint, 1000);
         });
 
         // ✅ DETECTA SE ESTÁ NO APK ANDROID E CONFIGURA IMPRESSÃO
@@ -2518,11 +2550,6 @@
                 console.log("✅ Impressão Android configurada com sucesso!");
             }
         }
-
-        // ✅ EXECUTA QUANDO A PÁGINA CARREGA
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(setupAndroidPrint, 1000);
-        });
 
         // ✅ TAMBÉM EXECUTA QUANDO A PÁGINA ESTIVER COMPLETAMENTE CARREGADA
         window.addEventListener('load', function() {
