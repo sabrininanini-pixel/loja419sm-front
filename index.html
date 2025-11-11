@@ -363,13 +363,128 @@
         const USER_ID = "web-user-123";
         
         // =========================================================================
-        // SISTEMA DE AUTENTICAÇÃO
+        // SISTEMA DE AUTENTICAÇÃO COM LEMBRAR LOGIN CORRIGIDO
         // =========================================================================
 
         let currentUser = null;
 
         /**
-         * Realiza o login
+         * ✅ SISTEMA DE LEMBRAR LOGIN CORRIGIDO
+         */
+        function setupLoginRemember() {
+            const isAndroidApp = typeof Android !== 'undefined';
+            
+            if (isAndroidApp) {
+                console.log("📱 APK Android detectado - Configurando lembrança de login...");
+                
+                // Tenta carregar login salvo do Android
+                try {
+                    const savedLogin = Android.carregarLogin();
+                    
+                    if (savedLogin && savedLogin !== "{}") {
+                        const loginData = JSON.parse(savedLogin);
+                        if (loginData.username && loginData.password) {
+                            // ✅ PREENCHE OS CAMPOS AUTOMATICAMENTE
+                            document.getElementById('username').value = loginData.username;
+                            document.getElementById('password').value = loginData.password;
+                            
+                            console.log('✅ Credenciais salvas carregadas do Android');
+                            
+                            // ✅ TENTA LOGIN AUTOMÁTICO APÓS 500ms
+                            setTimeout(() => {
+                                console.log('🔄 Tentando login automático...');
+                                login();
+                            }, 500);
+                        }
+                    }
+                } catch (error) {
+                    console.log('❌ Erro ao carregar login salvo do Android:', error);
+                }
+            } else {
+                // No navegador - usa localStorage
+                try {
+                    const savedLogin = localStorage.getItem('nfe_login_credentials');
+                    
+                    if (savedLogin) {
+                        const loginData = JSON.parse(savedLogin);
+                        if (loginData.username && loginData.password) {
+                            // ✅ PREENCHE OS CAMPOS AUTOMATICAMENTE
+                            document.getElementById('username').value = loginData.username;
+                            document.getElementById('password').value = loginData.password;
+                            
+                            console.log('✅ Credenciais salvas carregadas do navegador');
+                            
+                            // ✅ TENTA LOGIN AUTOMÁTICO APÓS 500ms
+                            setTimeout(() => {
+                                console.log('🔄 Tentando login automático...');
+                                login();
+                            }, 500);
+                        }
+                    }
+                } catch (error) {
+                    console.log('❌ Erro ao carregar login salvo do navegador:', error);
+                }
+            }
+        }
+
+        /**
+         * ✅ SALVAR CREDENCIAIS APÓS LOGIN BEM-SUCEDIDO
+         */
+        function saveLoginCredentials(username, password) {
+            const loginData = {
+                username: username,
+                password: password,
+                timestamp: Date.now()
+            };
+            
+            const isAndroidApp = typeof Android !== 'undefined';
+            
+            if (isAndroidApp) {
+                // Salva no Android
+                try {
+                    Android.salvarLogin(username, password);
+                    console.log('✅ Credenciais salvas no Android');
+                } catch (error) {
+                    console.log('❌ Erro ao salvar credenciais no Android:', error);
+                }
+            } else {
+                // Salva no navegador
+                try {
+                    localStorage.setItem('nfe_login_credentials', JSON.stringify(loginData));
+                    console.log('✅ Credenciais salvas no navegador');
+                } catch (error) {
+                    console.log('❌ Erro ao salvar credenciais no navegador:', error);
+                }
+            }
+        }
+
+        /**
+         * ✅ LIMPAR CREDENCIAIS SALVAS (no logout)
+         */
+        function clearLoginCredentials() {
+            const isAndroidApp = typeof Android !== 'undefined';
+            
+            if (isAndroidApp) {
+                // Limpa no Android
+                try {
+                    Android.salvarLogin("", "");
+                    console.log('✅ Credenciais limpas no Android');
+                } catch (error) {
+                    console.log('❌ Erro ao limpar credenciais no Android:', error);
+                }
+            } else {
+                // Limpa no navegador
+                try {
+                    localStorage.removeItem('nfe_login_credentials');
+                    console.log('✅ Credenciais limpas no navegador');
+                } catch (error) {
+                    console.log('❌ Erro ao limpar credenciais no navegador:', error);
+                }
+            }
+        }
+
+        /**
+         * ✅ FUNÇÃO LOGIN ORIGINAL COM SALVAMENTO DE CREDENCIAIS
          */
         async function login() {
             const username = document.getElementById('username').value.trim();
@@ -404,10 +519,9 @@
                     showMainSystem();
                     showNotification(`Bem-vindo, ${username}!`, 'success');
                     
-                    // ✅ SALVA LOGIN APÓS LOGIN BEM-SUCEDIDO
-                    if (typeof Android !== 'undefined') {
-                        Android.salvarLogin(username, password);
-                    }
+                    // ✅ SALVA AS CREDENCIAIS APÓS LOGIN BEM-SUCEDIDO
+                    saveLoginCredentials(username, password);
+                    
                 } else {
                     showNotification(result.message || 'Erro ao fazer login', 'error');
                 }
@@ -452,7 +566,7 @@
         }
 
         /**
-         * Realiza logout
+         * ✅ LOGOUT COM LIMPEZA DE CREDENCIAIS
          */
         async function logout() {
             try {
@@ -463,6 +577,9 @@
             } catch (error) {
                 console.error('Erro no logout:', error);
             } finally {
+                // ✅ LIMPA AS CREDENCIAIS SALVAS
+                clearLoginCredentials();
+                
                 currentUser = null;
                 document.getElementById('main-system').classList.add('hidden');
                 document.getElementById('login-screen').classList.remove('hidden');
@@ -537,10 +654,14 @@
         };
 
         /**
-         * Inicialização do sistema de autenticação
+         * ✅ INICIALIZAÇÃO CORRIGIDA
          */
         async function initializeApp() {
             try {
+                // ✅ PRIMEIRO CONFIGURA O SISTEMA DE LEMBRAR LOGIN
+                setupLoginRemember();
+                
+                // ✅ DEPOIS VERIFICA SE JÁ ESTÁ AUTENTICADO
                 const isAuthenticated = await checkAuth();
                 
                 if (isAuthenticated) {
@@ -2354,8 +2475,7 @@
                 }
             });
             
-            // ✅ CORREÇÃO: REMOVIDO O SISTEMA DE LEMBRAR LOGIN QUE CAUSAVA CONFLITO
-            // Apenas inicializa o app normalmente
+            // ✅ INICIALIZA O APP (AGORA COM SISTEMA DE LEMBRAR LOGIN CORRIGIDO)
             initializeApp();
         });
 
