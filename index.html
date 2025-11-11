@@ -390,11 +390,6 @@
                             
                             console.log('✅ Credenciais salvas carregadas do Android');
                             
-                            // ✅ TENTA LOGIN AUTOMÁTICO APÓS 500ms
-                            setTimeout(() => {
-                                console.log('🔄 Tentando login automático...');
-                                login();
-                            }, 500);
                         }
                     }
                 } catch (error) {
@@ -414,11 +409,7 @@
                             
                             console.log('✅ Credenciais salvas carregadas do navegador');
                             
-                            // ✅ TENTA LOGIN AUTOMÁTICO APÓS 500ms
-                            setTimeout(() => {
-                                console.log('🔄 Tentando login automático...');
-                                login();
-                            }, 500);
+
                         }
                     }
                 } catch (error) {
