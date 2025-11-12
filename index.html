@@ -1150,12 +1150,21 @@
             }
 
             dataRows.forEach((row, rowIndex) => {
-                const isRowEmpty = row.length === 0 || row.every(cell => !cell || String(cell).trim() === '');
-                if (isRowEmpty) return; 
+    const isRowEmpty = row.length === 0 || row.every(cell => !cell || String(cell).trim() === '');
+    if (isRowEmpty) return; 
 
-                const sheetRowIndex = (data[0][0] === headers[0] ? rowIndex + 2 : rowIndex + 1);
-                
-                html += `<tr data-row-index="${sheetRowIndex}">`;
+    const sheetRowIndex = (data[0][0] === headers[0] ? rowIndex + 2 : rowIndex + 1);
+    
+    // ✅ VERIFICA SE É UMA LINHA DE INFORMAÇÕES DA NOTA FISCAL
+    const isInfoRow = row.some(cell => 
+        cell && String(cell).includes('Data:') && 
+        String(cell).includes('Pedido:') && 
+        String(cell).includes('Chave:')
+    );
+    
+    const rowClass = isInfoRow ? 'bg-blue-50' : '';
+    
+    html += `<tr data-row-index="${sheetRowIndex}" class="${rowClass}">`;
                 
                 for (let i = 0; i < headers.length; i++) {
                     const cellValue = row[i] !== undefined ? row[i] : '';
