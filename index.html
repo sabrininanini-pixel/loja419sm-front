@@ -248,6 +248,43 @@
             }
         }
 
+.expand-mode-cell.descricao-cell {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    padding: 15px;
+    background-color: rgba(99, 102, 241, 0.05);
+    border-radius: 8px;
+    border-left: 4px solid #6366f1;
+    margin: 10px 0;
+    font-size: 0.9rem;
+}
+
+.expand-mode-cell.descricao-cell::before {
+    content: "📄 ";
+    font-weight: bold;
+    color: #6366f1;
+}
+
+/* Se quiser separar visualmente os dados */
+.expand-mode-cell.descricao-cell {
+    background: linear-gradient(135deg, #f8fafc, #e0e7ff);
+    border: 1px solid #e2e8f0;
+}
+
+/* RESPONSIVO */
+@media (max-width: 768px) {
+    header .flex {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .nf-info {
+        flex-direction: column;
+        gap: 15px;
+    }
+}
+		
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -311,16 +348,30 @@
     <!-- SISTEMA PRINCIPAL (inicialmente oculto) -->
     <div id="main-system" class="hidden">
         <div class="container mx-auto px-0 py-4 md:p-8">
-            <header class="mb-6 print-hidden">
-                <div class="flex justify-between items-center">
-                    <h1 class="text-3xl font-extrabold text-gray-900 md:px-0 px-4">
-                        Conferir Nota Fiscal
-                    </h1>
-                    <button onclick="logout()" class="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-800 rounded-lg shadow-sm hover:bg-gray-200 transition duration-150 text-sm font-medium border border-gray-300">
-                        <span>Sair</span>
-                    </button>
-                </div>
-            </header>
+            <header class="mb-6 print-hidden" style="background: linear-gradient(135deg, #1e3a8a, #3730a3); color: white; padding: 20px 0; margin: -20px -20px 30px -20px;">
+    <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center">
+            <!-- LOGO GTGO COM LINK -->
+            <a href="https://www.gtgo.com.br" class="flex flex-col items-center text-center" style="text-decoration: none; color: inherit;">
+                <div class="text-xl font-bold">GTGO</div>
+                <div class="text-xs opacity-90 mt-1">Gestão com tecnologia</div>
+            </a>
+            
+            <!-- TÍTULO CENTRAL -->
+            <div class="flex-1 text-center">
+                <h1 class="text-2xl font-semibold mb-1">Conferir Nota Fiscal</h1>
+                <p class="text-sm opacity-90 max-w-md mx-auto">Sistema de conferência e gestão de notas fiscais</p>
+            </div>
+            
+            <!-- BOTÃO SAIR ESTILIZADO -->
+            <button onclick="logout()" class="flex items-center space-x-2 px-4 py-2 rounded-lg transition duration-150 text-sm font-medium border"
+                    style="background: rgba(255, 255, 255, 0.2); color: white; border-color: rgba(255, 255, 255, 0.3);">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Sair</span>
+            </button>
+        </div>
+    </div>
+</header>
 
             <div class="bg-white rounded-xl shadow-lg border border-gray-100 px-0 pt-6 pb-6 md:p-6">
 
