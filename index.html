@@ -304,14 +304,6 @@
                     Entrar
                 </button>
                 
-                <!-- ✅ BOTÃO "ESQUECI MINHA SENHA" ADICIONADO -->
-                <button 
-                    type="button" 
-                    onclick="esqueciMinhaSenha()"
-                    class="w-full mt-4 text-center text-sm text-blue-600 hover:text-blue-800 underline"
-                >
-                    Esqueci minha senha / Limpar credenciais
-                </button>
             </div>
         </div>
     </div>
@@ -422,11 +414,8 @@
                 document.getElementById('password').value = savedLogin.password;
                 console.log(`✅ Campos preenchidos (Fonte: ${source})`);
                 
-                // Feedback visual
-                showNotification(`Credenciais salvas carregadas (${source})`, 'success', 2000);
+            
                 
-            } else {
-                console.log('ℹ️ Nenhuma credencial salva encontrada');
             }
         }
 
@@ -463,7 +452,6 @@
                 console.log('❌ Erro ao salvar no localStorage:', error);
             }
             
-            showNotification('Credenciais salvas com sucesso!', 'success', 2000);
         }
 
         /**
@@ -494,15 +482,6 @@
             showNotification('Credenciais removidas com sucesso', 'info');
         }
 
-        /**
-         * ✅ BOTÃO "ESQUECI MINHA SENHA" PARA LIMPAR CREDENCIAIS
-         */
-        function esqueciMinhaSenha() {
-            if (confirm('Deseja remover as credenciais salvas? Isso irá limpar usuário e senha.')) {
-                clearLoginCredentials();
-                showNotification('Credenciais removidas. Faça login novamente.', 'info');
-            }
-        }
 
         /**
          * Realiza o login
