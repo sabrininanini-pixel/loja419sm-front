@@ -1104,7 +1104,7 @@
 
                 html += `<tr data-row-index="${sheetRowIndex}" class="${rowClass}">
                             <td ${editAttributes} onkeydown="handleContagemCellKeydown(event, this)" class="${cellClassesA}">${cellValueA}</td>
-                            <td class="expand-mode-cell descricao-cell bg-blue-50" data-row-index="${sheetRowIndex}" data-sheet-range="${sheetRangeC}">${cellValueC}</td>
+                            <td class="expand-mode-cell descricao-cell bg-blue-200" data-row-index="${sheetRowIndex}" data-sheet-range="${sheetRangeC}">${cellValueC}</td>
                          </tr>`;
             }
 
@@ -1162,7 +1162,7 @@
         String(cell).includes('Chave:')
     );
     
-    const rowClass = isInfoRow ? 'bg-blue-50' : '';
+    const rowClass = isInfoRow ? 'bg-blue-200' : '';
     
     html += `<tr data-row-index="${sheetRowIndex}" class="${rowClass}">`;
                 
@@ -1350,7 +1350,7 @@ function renderNotasFiscaisInfo(notasFiscaisInfo) {
         // Substitui "Pedido:" por "Pedido Capta:"
         formattedInfo = formattedInfo.replace(/Pedido:/g, 'Pedido Capta:');
         
-        html += `<div class="p-2 border-b border-gray-200 text-sm font-sans bg-blue-50">${formattedInfo}</div>`;
+        html += `<div class="p-2 border-b border-gray-200 text-sm font-sans bg-blue-200">${formattedInfo}</div>`;
     });
     
     html += `</div>`;
