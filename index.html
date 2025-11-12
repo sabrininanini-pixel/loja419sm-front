@@ -1296,12 +1296,24 @@ function renderNotasFiscaisInfo(notasFiscaisInfo) {
 
     let html = `<div class="mb-4">`;
     
-    // Mostra quantas notas fiscais tem
-    html += `<div class="text-sm text-gray-600 mb-2">Notas Fiscais na Conferência: ${notasFiscaisInfo.length}</div>`;
+    // Mostra quantas notas fiscais tem - MESMA FONTE DA TABELA
+    html += `<div class="text-sm text-gray-600 mb-2 font-sans">Notas Fiscais na Conferência: ${notasFiscaisInfo.length}</div>`;
     
-    // Mostra cada nota fiscal (igual ao método original)
+    // Mostra cada nota fiscal - MESMA FONTE DA TABELA
     notasFiscaisInfo.forEach((info, index) => {
-        html += `<div class="p-2 border-b border-gray-200 text-sm font-sans">${info}</div>`;
+        // ✅ MODIFICA APENAS NA EXIBIÇÃO DO FRONT-END
+        let formattedInfo = info;
+        
+        // Substitui "NF:" por "Nfe:"
+        formattedInfo = formattedInfo.replace(/NF:/g, 'Nfe:');
+        
+        // Substitui "Data:" por "Data de emissão:"
+        formattedInfo = formattedInfo.replace(/Data:/g, 'Data de emissão:');
+        
+        // Substitui "Pedido:" por "Pedido Capta:"
+        formattedInfo = formattedInfo.replace(/Pedido:/g, 'Pedido Capta:');
+        
+        html += `<div class="p-2 border-b border-gray-200 text-sm font-sans">${formattedInfo}</div>`;
     });
     
     html += `</div>`;
