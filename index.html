@@ -1257,7 +1257,7 @@ async function getNotasFiscaisInfo() {
                 const firstCell = String(row[0]).trim();
                 
                 // Verifica se é uma linha de informação de nota fiscal
-                if (firstCell.startsWith('NF:') && firstCell.includes('Data:') && firstCell.includes('Pedido:') && firstCell.includes('Chave:')) {
+                if (firstCell.startsWith('NFe:') && firstCell.includes('Data de Emissão:') && firstCell.includes('Pedido Capta:') && firstCell.includes('Chave:')) {
                     notasInfo.push(firstCell);
                 }
             }
