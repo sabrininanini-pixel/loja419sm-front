@@ -325,9 +325,31 @@
     <!-- SISTEMA PRINCIPAL (inicialmente oculto) -->
     <div id="main-system" class="hidden">
         <div class="mx-auto px-0 py-0 md:px-8">
-            <header class="print-hidden" style="background: linear-gradient(135deg, #1e3a8a, #3730a3); color: white; margin: 0; padding: 20px 0; width: 100vw; margin-left: calc(-50vw + 50%);">
+            <header class="print-hidden" style="background: linear-gradient(135deg, #1e3a8a, #3730a3); color: white; margin: 0; padding: 16px 0; width: 100vw; margin-left: calc(-50vw + 50%);">
     <div class="w-full">
-        <div class="flex justify-between items-center max-w-7xl mx-auto px-4">
+        <!-- MOBILE LAYOUT -->
+        <div class="md:hidden flex flex-col items-center space-y-3 px-4">
+            <!-- LOGO E TÍTULO NA MESMA LINHA -->
+            <div class="flex items-center justify-between w-full">
+                <a href="https://www.gtgo.com.br" class="flex items-center space-x-2" style="text-decoration: none; color: inherit;">
+                    <div class="text-lg font-bold">GTGO</div>
+                </a>
+                <button onclick="logout()" class="flex items-center space-x-1 px-3 py-1 rounded text-sm border"
+                        style="background: rgba(255, 255, 255, 0.2); color: white; border-color: rgba(255, 255, 255, 0.3);">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Sair</span>
+                </button>
+            </div>
+            
+            <!-- TÍTULO CENTRAL -->
+            <div class="text-center w-full">
+                <h1 class="text-xl font-semibold">Conferir Nota Fiscal</h1>
+                <p class="text-xs opacity-90 mt-1">Sistema de conferência</p>
+            </div>
+        </div>
+
+        <!-- DESKTOP LAYOUT -->
+        <div class="hidden md:flex justify-between items-center max-w-7xl mx-auto px-4">
             <!-- LOGO GTGO COM LINK -->
             <a href="https://www.gtgo.com.br" class="flex flex-col items-center text-center" style="text-decoration: none; color: inherit;">
                 <div class="text-xl font-bold">GTGO</div>
