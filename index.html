@@ -1174,66 +1174,125 @@
          * Gerencia a busca de dados e a renderização do conteúdo da aba.
          */
         async function loadTabContent(sheetName) {
-            const sheetToLoad = (sheetName === "CONTAGEM LOJA") ? currentContador : sheetName;
-            const data = await fetchSheetData(sheetToLoad);
+    const sheetToLoad = (sheetName === "CONTAGEM LOJA") ? currentContador : sheetName;
+    const data = await fetchSheetData(sheetToLoad);
 
-            let targetElementId = 'dynamic-table-content';
-            let headers = [];
+    let targetElementId = 'dynamic-table-content';
+    let headers = [];
 
-            if (sheetName === "NOTA FISCAL") {
-                headers = ["Descrição", "Quantidade", "Código de Barras", "Item"];
-                targetElementId = 'dynamic-table-content';
-                const targetElement = document.getElementById(targetElementId);
-                if (targetElement) {
-                    targetElement.innerHTML = renderTable(sheetName, data, headers);
-                    updateNotaFiscalCache(data);
-                }
+    if (sheetName === "NOTA FISCAL") {
+        headers = ["Descrição", "Quantidade", "Código de Barras", "Item"];
+        targetElementId = 'dynamic-table-content';
+        const targetElement = document.getElementById(targetElementId);
+        if (targetElement) {
+            targetElement.innerHTML = renderTable(sheetName, data, headers);
+            updateNotaFiscalCache(data);
+        }
 
-            } else if (sheetName === "CONTAGEM LOJA") {
-                headers = ["Código de Barras", "Descrição"]; 
-                targetElementId = 'dynamic-table-content-contagem';
-                
-                setTimeout(() => {
-                    const contadorButtons = document.querySelectorAll('.contador-button');
-                    contadorButtons.forEach(button => {
-                        button.addEventListener('click', function() {
-                            switchContador(this.getAttribute('data-contador'));
-                        });
-                    });
-                }, 100);
-                
-                if (!notaFiscalData) {
-                    await loadNotaFiscalDataForCache();
-                }
-                
-                const targetElement = document.getElementById(targetElementId);
-                if (targetElement) {
-                    targetElement.innerHTML = renderContagemTableFixedRows(data, headers);
-                    
-                    updatePendingCount();
-                    
-                    startCacheChangeMonitor();
-                    
-                    setTimeout(() => {
-                        requestAnimationFrame(focusNextEmptyContagemCell);
-                    }, 100); 
-                }
+    } else if (sheetName === "CONTAGEM LOJA") {
+        headers = ["Código de Barras", "Descrição"]; 
+        targetElementId = 'dynamic-table-content-contagem';
+        
+        setTimeout(() => {
+            const contadorButtons = document.querySelectorAll('.contador-button');
+            contadorButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    switchContador(this.getAttribute('data-contador'));
+                });
+            });
+        }, 100);
+        
+        if (!notaFiscalData) {
+            await loadNotaFiscalDataForCache();
+        }
+        
+        const targetElement = document.getElementById(targetElementId);
+        if (targetElement) {
+            targetElement.innerHTML = renderContagemTableFixedRows(data, headers);
+            
+            updatePendingCount();
+            
+            startCacheChangeMonitor();
+            
+            setTimeout(() => {
+                requestAnimationFrame(focusNextEmptyContagemCell);
+            }, 100); 
+        }
 
-            } else if (sheetName === "CONFERENCIA") {
-                headers = ["Código de Barras", "Descrição do Produto", "Quantidade NF", "Contagem Loja", "Diferença", "OBS"]; 
-                targetElementId = 'dynamic-table-content-conferencia';
+    } else if (sheetName === "CONFERENCIA") {
+        headers = ["Código de Barras", "Descrição do Produto", "Quantidade NF", "Contagem Loja", "Diferença", "OBS"]; 
+        targetElementId = 'dynamic-table-content-conferencia';
+        
+        const targetElement = document.getElementById(targetElementId);
+        if (targetElement) {
+            // ✅ BUSCA AS INFORMAÇÕES DAS NOTAS FISCAIS (MESMO MÉTODO DO INDEX ORIGINAL)
+            const notasFiscaisInfo = await getNotasFiscaisInfo();
+            
+            // ✅ RENDERIZA APENAS AS INFORMAÇÕES DAS NOTAS FISCAIS ACIMA DA TABELA
+            const notasInfoHtml = renderNotasFiscaisInfo(notasFiscaisInfo);
+            targetElement.innerHTML = notasInfoHtml + renderTable(sheetName, data, headers);
+            
+            setTimeout(() => {
+                applyConferenciaStyles(headers.length);
+            }, 0);
+        }
+    }
+}
+
+/**
+ * ✅ FUNÇÃO: Busca informações das notas fiscais da aba NOTA FISCAL
+ */
+async function getNotasFiscaisInfo() {
+    try {
+        const notaFiscalData = await fetchSheetData("NOTA FISCAL");
+        if (!notaFiscalData || !Array.isArray(notaFiscalData)) {
+            return [];
+        }
+
+        const notasInfo = [];
+        
+        // Procura por linhas que contêm informações de notas fiscais
+        for (let row of notaFiscalData) {
+            if (row && Array.isArray(row) && row.length > 0) {
+                const firstCell = String(row[0]).trim();
                 
-                const targetElement = document.getElementById(targetElementId);
-                if (targetElement) {
-                    targetElement.innerHTML = renderTable(sheetName, data, headers);
-                    
-                    setTimeout(() => {
-                        applyConferenciaStyles(headers.length);
-                    }, 0);
+                // Verifica se é uma linha de informação de nota fiscal
+                if (firstCell.startsWith('NF:') && firstCell.includes('Data:') && firstCell.includes('Pedido:') && firstCell.includes('Chave:')) {
+                    notasInfo.push(firstCell);
                 }
             }
         }
+        
+        console.log(`✅ Encontradas ${notasInfo.length} notas fiscais na aba NOTA FISCAL`);
+        return notasInfo;
+        
+    } catch (error) {
+        console.error("Erro ao buscar informações das notas fiscais:", error);
+        return [];
+    }
+}
 
+/**
+ * ✅ FUNÇÃO SIMPLES: Renderiza informações das notas fiscais (igual ao index original)
+ */
+function renderNotasFiscaisInfo(notasFiscaisInfo) {
+    if (!notasFiscaisInfo || notasFiscaisInfo.length === 0) {
+        return '<div class="mb-4 p-3 bg-gray-100 rounded-lg text-sm text-gray-600">Nenhuma nota fiscal encontrada</div>';
+    }
+
+    let html = `<div class="mb-4">`;
+    
+    // Mostra quantas notas fiscais tem
+    html += `<div class="text-sm text-gray-600 mb-2">Notas Fiscais na Conferência: ${notasFiscaisInfo.length}</div>`;
+    
+    // Mostra cada nota fiscal (igual ao método original)
+    notasFiscaisInfo.forEach((info, index) => {
+        html += `<div class="p-2 border-b border-gray-200 text-xs font-mono">${info}</div>`;
+    });
+    
+    html += `</div>`;
+    return html;
+}
         /**
          * Carrega os dados da Nota Fiscal especificamente para o cache de busca
          */
