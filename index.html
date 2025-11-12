@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Conferir Nota Fiscal</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- ✅ CACHE BUSTING - FORÇA ATUALIZAÇÃO -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <style>
         .mock-table th, .mock-table td {
             padding: 12px;
@@ -170,15 +175,6 @@
             background-color: #fecaca !important; /* Vermelho mais escuro no hover */
         }
 
-        /* ✅ ESTILOS PARA AS LINHAS DE NOTAS FISCAIS NA CONFERENCIA */
-        .bg-blue-25 {
-            background-color: #eff6ff; /* Azul bem claro */
-        }
-
-        .bg-blue-25:hover {
-            background-color: #dbeafe; /* Azul um pouco mais escuro no hover */
-        }
-
         /* Estilo para células editáveis (Contagem Loja / OBS) */
         [contenteditable="true"]:focus {
             outline: none;
@@ -261,7 +257,7 @@
         <div class="max-w-md w-full space-y-8">
             <div class="bg-white p-8 rounded-lg shadow-md">
                 <div class="text-center mb-8">
-                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Sistema de Conferência 5</h1>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Sistema de Conferência</h1>
                     <p class="text-gray-600">Faça login para continuar</p>
                 </div>
                 
@@ -306,6 +302,15 @@
                     class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 font-medium"
                 >
                     Entrar
+                </button>
+                
+                <!-- ✅ BOTÃO "ESQUECI MINHA SENHA" ADICIONADO -->
+                <button 
+                    type="button" 
+                    onclick="esqueciMinhaSenha()"
+                    class="w-full mt-4 text-center text-sm text-blue-600 hover:text-blue-800 underline"
+                >
+                    Esqueci minha senha / Limpar credenciais
                 </button>
             </div>
         </div>
@@ -363,140 +368,144 @@
         const USER_ID = "web-user-123";
         
         // =========================================================================
-        // SISTEMA DE AUTENTICAÇÃO COM LEMBRAR LOGIN CORRIGIDO PARA ANDROID
+        // SISTEMA DE AUTENTICAÇÃO CORRIGIDO
         // =========================================================================
 
         let currentUser = null;
 
         /**
-         * ✅ SISTEMA DE LEMBRAR LOGIN CORRIGIDO - VERSÃO ANDROID COMPATÍVEL
+         * ✅ SISTEMA DE LEMBRAR LOGIN - VERSÃO FORTE
          */
         function setupLoginRemember() {
+            console.log("🔧 Iniciando sistema de lembrar login...");
+            
             const isAndroidApp = typeof Android !== 'undefined';
+            console.log("📱 Ambiente:", isAndroidApp ? "Android APK" : "Navegador");
             
-            console.log('🔧 Configurando lembrança de login...', { isAndroidApp });
+            let savedLogin = null;
+            let source = '';
             
+            // PRIMEIRO: Tenta do Android
             if (isAndroidApp) {
-                console.log("📱 APK Android detectado - Configurando lembrança de login...");
-                
-                // ✅ NOTIFICA O ANDROID QUE O WEBVIEW ESTÁ PRONTO
                 try {
-                    Android.webViewPronto();
-                    console.log('✅ Android notificado - WebView pronto');
-                } catch (error) {
-                    console.log('❌ Erro ao notificar Android:', error);
-                }
-                
-                // ✅ TENTA CARREGAR LOGIN SALVO DO ANDROID (MESMO CÓDIGO, MAS COM MAIS LOGS)
-                try {
-                    const savedLogin = Android.carregarLogin();
-                    console.log('📦 Login salvo do Android:', savedLogin);
+                    console.log("📱 Tentando carregar do Android...");
+                    const androidData = Android.carregarLogin();
+                    console.log("📱 Resposta do Android:", androidData);
                     
-                    if (savedLogin && savedLogin !== "{}") {
-                        const loginData = JSON.parse(savedLogin);
-                        if (loginData.username && loginData.password) {
-                            // ✅ PREENCHE OS CAMPOS AUTOMATICAMENTE
-                            document.getElementById('username').value = loginData.username;
-                            document.getElementById('password').value = loginData.password;
-                            
-                            console.log('✅ Credenciais salvas carregadas do Android');
-                            
-                            // ✅ TENTA LOGIN AUTOMÁTICO APÓS 500ms
-                            setTimeout(() => {
-                                console.log('🔄 Tentando login automático...');
-                                login();
-                            }, 500);
-                        }
-                    } else {
-                        console.log('📭 Nenhum login salvo encontrado no Android');
+                    if (androidData && androidData !== "{}" && androidData !== "null" && androidData !== "") {
+                        savedLogin = JSON.parse(androidData);
+                        source = 'Android';
+                        console.log('✅ Credenciais carregadas do Android');
                     }
                 } catch (error) {
-                    console.log('❌ Erro ao carregar login salvo do Android:', error);
+                    console.log('❌ Falha no Android, tentando fallback...', error);
                 }
+            }
+            
+            // SEGUNDO: Fallback para localStorage
+            if (!savedLogin) {
+                try {
+                    const localData = localStorage.getItem('nfe_login_credentials');
+                    if (localData) {
+                        savedLogin = JSON.parse(localData);
+                        source = 'LocalStorage';
+                        console.log('✅ Credenciais carregadas do localStorage');
+                    }
+                } catch (error) {
+                    console.log('❌ Erro no localStorage:', error);
+                }
+            }
+            
+            // TERCEIRO: Se encontrou credenciais, preenche os campos
+            if (savedLogin && savedLogin.username && savedLogin.password) {
+                document.getElementById('username').value = savedLogin.username;
+                document.getElementById('password').value = savedLogin.password;
+                console.log(`✅ Campos preenchidos (Fonte: ${source})`);
+                
+                // Feedback visual
+                showNotification(`Credenciais salvas carregadas (${source})`, 'success', 2000);
+                
             } else {
-                // No navegador - usa localStorage
-                try {
-                    const savedLogin = localStorage.getItem('nfe_login_credentials');
-                    console.log('📦 Login salvo do navegador:', savedLogin);
-                    
-                    if (savedLogin) {
-                        const loginData = JSON.parse(savedLogin);
-                        if (loginData.username && loginData.password) {
-                            document.getElementById('username').value = loginData.username;
-                            document.getElementById('password').value = loginData.password;
-                            
-                            console.log('✅ Credenciais salvas carregadas do navegador');
-                            
-                            setTimeout(() => {
-                                console.log('🔄 Tentando login automático...');
-                                login();
-                            }, 500);
-                        }
-                    }
-                } catch (error) {
-                    console.log('❌ Erro ao carregar login salvo do navegador:', error);
-                }
+                console.log('ℹ️ Nenhuma credencial salva encontrada');
             }
         }
 
         /**
-         * ✅ SALVAR CREDENCIAIS APÓS LOGIN BEM-SUCEDIDO
+         * ✅ SALVAR CREDENCIAIS - VERSÃO ROBUSTA
          */
         function saveLoginCredentials(username, password) {
             const loginData = {
                 username: username,
                 password: password,
-                timestamp: Date.now()
+                timestamp: Date.now(),
+                source: 'login_success'
             };
+            
+            console.log("💾 Salvando credenciais para:", username);
             
             const isAndroidApp = typeof Android !== 'undefined';
             
+            // Salva no Android
             if (isAndroidApp) {
-                // Salva no Android
                 try {
-                    Android.salvarLogin(username, password);
-                    console.log('✅ Credenciais salvas no Android');
+                    Android.salvarLogin(JSON.stringify(loginData));
+                    console.log('✅ Salvo no Android');
                 } catch (error) {
-                    console.log('❌ Erro ao salvar credenciais no Android:', error);
-                }
-            } else {
-                // Salva no navegador
-                try {
-                    localStorage.setItem('nfe_login_credentials', JSON.stringify(loginData));
-                    console.log('✅ Credenciais salvas no navegador');
-                } catch (error) {
-                    console.log('❌ Erro ao salvar credenciais no navegador:', error);
+                    console.log('❌ Erro ao salvar no Android:', error);
                 }
             }
+            
+            // Salva no localStorage (sempre)
+            try {
+                localStorage.setItem('nfe_login_credentials', JSON.stringify(loginData));
+                console.log('✅ Salvo no localStorage');
+            } catch (error) {
+                console.log('❌ Erro ao salvar no localStorage:', error);
+            }
+            
+            showNotification('Credenciais salvas com sucesso!', 'success', 2000);
         }
 
         /**
-         * ✅ LIMPAR CREDENCIAIS SALVAS (no logout)
+         * ✅ LIMPAR CREDENCIAIS SALVAS (APENAS QUANDO EXPLICITAMENTE SOLICITADO)
          */
         function clearLoginCredentials() {
             const isAndroidApp = typeof Android !== 'undefined';
             
             if (isAndroidApp) {
-                // Limpa no Android
                 try {
-                    Android.limparLogin();
+                    Android.salvarLogin("", "");
                     console.log('✅ Credenciais limpas no Android');
                 } catch (error) {
                     console.log('❌ Erro ao limpar credenciais no Android:', error);
                 }
-            } else {
-                // Limpa no navegador
-                try {
-                    localStorage.removeItem('nfe_login_credentials');
-                    console.log('✅ Credenciais limpas no navegador');
-                } catch (error) {
-                    console.log('❌ Erro ao limpar credenciais no navegador:', error);
-                }
+            }
+            
+            try {
+                localStorage.removeItem('nfe_login_credentials');
+                console.log('✅ Credenciais limpas no navegador');
+            } catch (error) {
+                console.log('❌ Erro ao limpar credenciais no navegador:', error);
+            }
+            
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            
+            showNotification('Credenciais removidas com sucesso', 'info');
+        }
+
+        /**
+         * ✅ BOTÃO "ESQUECI MINHA SENHA" PARA LIMPAR CREDENCIAIS
+         */
+        function esqueciMinhaSenha() {
+            if (confirm('Deseja remover as credenciais salvas? Isso irá limpar usuário e senha.')) {
+                clearLoginCredentials();
+                showNotification('Credenciais removidas. Faça login novamente.', 'info');
             }
         }
 
         /**
-         * ✅ FUNÇÃO LOGIN ORIGINAL COM SALVAMENTO DE CREDENCIAIS
+         * Realiza o login
          */
         async function login() {
             const username = document.getElementById('username').value.trim();
@@ -578,7 +587,7 @@
         }
 
         /**
-         * ✅ LOGOUT COM LIMPEZA DE CREDENCIAIS
+         * ✅ LOGOUT CORRIGIDO - NÃO LIMPA CREDENCIAIS SALVAS
          */
         async function logout() {
             try {
@@ -589,14 +598,20 @@
             } catch (error) {
                 console.error('Erro no logout:', error);
             } finally {
-                // ✅ LIMPA AS CREDENCIAIS SALVAS
-                clearLoginCredentials();
-                
+                // ✅ MANTÉM AS CREDENCIAIS SALVAS - NÃO LIMPA!
                 currentUser = null;
                 document.getElementById('main-system').classList.add('hidden');
                 document.getElementById('login-screen').classList.remove('hidden');
-                document.getElementById('username').value = '';
-                document.getElementById('password').value = '';
+                
+                // ✅ NÃO LIMPA OS CAMPOS - DEIXA AS CREDENCIAIS SALVAS VISÍVEIS
+                // Os campos JÁ devem estar preenchidos pelo setupLoginRemember()
+                
+                showNotification('Logout realizado. Use o botão "Entrar" para acessar novamente.', 'success', 3000);
+                
+                // ✅ FORÇA RECARREGAMENTO DAS CREDENCIAIS (para garantir)
+                setTimeout(() => {
+                    setupLoginRemember();
+                }, 500);
             }
         }
 
@@ -666,42 +681,32 @@
         };
 
         /**
-         * ✅ FUNÇÃO PARA VERIFICAR SE O ANDROID ESTÁ PRONTO
-         */
-        function checkAndroidReady() {
-            if (typeof Android !== 'undefined') {
-                console.log('🤖 Android interface detectada, aguardando inicialização...');
-                
-                // Tenta carregar credenciais após um delay maior
-                setTimeout(() => {
-                    setupLoginRemember();
-                }, 1500);
-            } else {
-                console.log('🌐 Navegador normal - procedendo normalmente');
-                setupLoginRemember();
-            }
-        }
-
-        /**
          * ✅ INICIALIZAÇÃO CORRIGIDA
          */
         async function initializeApp() {
+            console.log("🚀 INICIALIZANDO APLICATIVO...");
+            
             try {
-                // ✅ USA A NOVA FUNÇÃO DE INICIALIZAÇÃO
-                checkAndroidReady();
+                // ✅ CONFIGURA LEMBRAR LOGIN
+                setTimeout(() => {
+                    setupLoginRemember();
+                }, 800);
                 
-                // ✅ DEPOIS VERIFICA SE JÁ ESTÁ AUTENTICADO
+                // ✅ VERIFICA AUTENTICAÇÃO EXISTENTE
                 const isAuthenticated = await checkAuth();
                 
                 if (isAuthenticated) {
+                    console.log("✅ Usuário já autenticado, mostrando sistema...");
                     showMainSystem();
                     showNotification(`Bem-vindo de volta, ${currentUser}!`, 'success');
                 } else {
+                    console.log("🔐 Usuário não autenticado, mostrando tela de login");
                     document.getElementById('login-screen').classList.remove('hidden');
                     document.getElementById('main-system').classList.add('hidden');
                 }
+                
             } catch (error) {
-                console.error('Erro na inicialização:', error);
+                console.error('💥 Erro crítico na inicialização:', error);
                 document.getElementById('login-screen').classList.remove('hidden');
                 document.getElementById('main-system').classList.add('hidden');
             }
@@ -887,6 +892,7 @@
 
         /**
          * Altera a aba ativa e carrega o conteúdo.
+         * AGORA COM CONTROLE DE MONITOR DE CACHE
          */
         function switchTab(sheetName) {
             autoSaveContagemOnTabChange();
@@ -999,33 +1005,33 @@
          * Retorna o HTML completo da aba CONFERENCIA (com botão de impressão e modo scroll).
          */
         function renderConferenciaLayout() {
-            return `
-                <div id="conferencia-content">
-                    <div class="flex flex-wrap gap-3 pb-4 mb-4 border-b border-gray-200 print-hidden">
-                        <button onclick="printConferencia()" class="flex items-center space-x-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg shadow-sm hover:bg-blue-200 transition duration-150 text-sm font-medium border border-blue-300">
-                            <span class="text-blue-600">${printerIcon}</span>
-                            <span>Imprimir Conferência</span>
-                        </button>
-                        
-                        <!-- ✅ NOVO BOTÃO EXPORTAR EXCEL -->
-                        <button onclick="exportarParaExcel()" class="flex items-center space-x-2 px-4 py-2 bg-green-100 text-green-700 rounded-lg shadow-sm hover:bg-green-200 transition duration-150 text-sm font-medium border border-green-300">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                            <span>Exportar para Excel</span>
-                        </button>
-                        
-                        
-                        <button onclick="toggleScrollMode('CONFERENCIA')" id="scroll-button-conferencia" class="flex items-center space-x-2 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg shadow-sm hover:bg-indigo-200 transition duration-150 text-sm font-medium border border-indigo-300">
-                            <span>Modo Scroll</span>
-                        </button>
-                    </div>
-                    <div id="dynamic-table-content-conferencia">
-                        <p class="text-center text-gray-400 py-10">Carregando dados...</p>
-                    </div>
-                </div>
-            `;
-        }
+    return `
+        <div id="conferencia-content">
+            <div class="flex flex-wrap gap-3 pb-4 mb-4 border-b border-gray-200 print-hidden">
+                <button onclick="printConferencia()" class="flex items-center space-x-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg shadow-sm hover:bg-blue-200 transition duration-150 text-sm font-medium border border-blue-300">
+                    <span class="text-blue-600">${printerIcon}</span>
+                    <span>Imprimir Conferência</span>
+                </button>
+                
+                <!-- ✅ NOVO BOTÃO EXPORTAR EXCEL -->
+                <button onclick="exportarParaExcel()" class="flex items-center space-x-2 px-4 py-2 bg-green-100 text-green-700 rounded-lg shadow-sm hover:bg-green-200 transition duration-150 text-sm font-medium border border-green-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span>Exportar para Excel</span>
+                </button>
+                
+                
+                <button onclick="toggleScrollMode('CONFERENCIA')" id="scroll-button-conferencia" class="flex items-center space-x-2 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg shadow-sm hover:bg-indigo-200 transition duration-150 text-sm font-medium border border-indigo-300">
+                    <span>Modo Scroll</span>
+                </button>
+            </div>
+            <div id="dynamic-table-content-conferencia">
+                <p class="text-center text-gray-400 py-10">Carregando dados...</p>
+            </div>
+        </div>
+    `;
+}
 
         /**
          * Abre a caixa de diálogo de impressão do navegador com estilos A4.
@@ -1240,152 +1246,13 @@
                 
                 const targetElement = document.getElementById(targetElementId);
                 if (targetElement) {
-                    // ✅ BUSCA AS INFORMAÇÕES DAS NOTAS FISCAIS
-                    const notasFiscaisInfo = await getNotasFiscaisInfo();
-                    targetElement.innerHTML = renderConferenciaTableWithNotasInfo(sheetName, data, headers, notasFiscaisInfo);
+                    targetElement.innerHTML = renderTable(sheetName, data, headers);
                     
                     setTimeout(() => {
                         applyConferenciaStyles(headers.length);
                     }, 0);
                 }
             }
-        }
-
-        /**
-         * ✅ NOVA FUNÇÃO: Busca informações das notas fiscais da aba NOTA FISCAL
-         */
-        async function getNotasFiscaisInfo() {
-            try {
-                const notaFiscalData = await fetchSheetData("NOTA FISCAL");
-                if (!notaFiscalData || !Array.isArray(notaFiscalData)) {
-                    return [];
-                }
-
-                const notasInfo = [];
-                
-                // Procura por linhas que contêm informações de notas fiscais
-                for (let row of notaFiscalData) {
-                    if (row && Array.isArray(row) && row.length > 0) {
-                        const firstCell = String(row[0]).trim();
-                        
-                        // Verifica se é uma linha de informação de nota fiscal
-                        if (firstCell.startsWith('NF:') && firstCell.includes('Data:') && firstCell.includes('Pedido:') && firstCell.includes('Chave:')) {
-                            notasInfo.push(firstCell);
-                        }
-                    }
-                }
-                
-                console.log(`✅ Encontradas ${notasInfo.length} notas fiscais na aba NOTA FISCAL`);
-                return notasInfo;
-                
-            } catch (error) {
-                console.error("Erro ao buscar informações das notas fiscais:", error);
-                return [];
-            }
-        }
-
-        /**
-         * ✅ NOVA FUNÇÃO: Renderiza tabela da CONFERENCIA com informações das notas fiscais
-         */
-        function renderConferenciaTableWithNotasInfo(sheetName, data, headers, notasFiscaisInfo) {
-            if (!data || data.length === 0) {
-                return `<p class="text-center text-gray-500 py-10">Nenhum dado encontrado no Google Sheets para esta aba.</p>`;
-            }
-
-            const isConferencia = sheetName === "CONFERENCIA";
-            const isStatusEditable = isConferencia;
-            
-            let tableID = 'conferencia-table';
-
-            let html = `
-                <div class="rounded-lg border border-gray-200 overflow-x-auto shadow-sm">
-                    <table class="mock-table w-full text-sm" id="${tableID}">
-                        <thead class="bg-gray-50 sticky top-0">
-            `;
-            
-            // ✅ ADICIONA LINHAS COM INFORMAÇÕES DAS NOTAS FISCAIS
-            if (notasFiscaisInfo.length > 0) {
-                html += `<tr class="bg-blue-50 border-b border-blue-200">`;
-                html += `<td colspan="${headers.length}" class="p-3 text-sm font-semibold text-blue-800">`;
-                html += `<div class="flex items-center space-x-2">`;
-                html += `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">`;
-                html += `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />`;
-                html += `</svg>`;
-                html += `<span>Notas Fiscais na Conferência (${notasFiscaisInfo.length})</span>`;
-                html += `</div>`;
-                html += `</td>`;
-                html += `</tr>`;
-                
-                // Adiciona cada nota fiscal como uma linha separada
-                notasFiscaisInfo.forEach((info, index) => {
-                    html += `<tr class="bg-blue-25 border-b border-blue-100">`;
-                    html += `<td colspan="${headers.length}" class="p-2 text-xs text-blue-700 font-medium">`;
-                    html += `${info}`;
-                    html += `</td>`;
-                    html += `</tr>`;
-                });
-                
-                // Linha em branco para separação
-                html += `<tr class="bg-gray-100"><td colspan="${headers.length}" class="p-1"></td></tr>`;
-            }
-
-            // CABEÇALHOS NORMAIS
-            html += `<tr>`;
-            headers.forEach(h => {
-                html += `<th class="w-auto whitespace-nowrap">${h}</th>`;
-            });
-            html += `</tr></thead><tbody>`;
-
-            let dataRows = data;
-            
-            if (data.length > 0 && headers.length > 0 && String(data[0][0]) === headers[0]) {
-                dataRows = data.slice(1);
-            }
-
-            dataRows.forEach((row, rowIndex) => {
-                const isRowEmpty = row.length === 0 || row.every(cell => !cell || String(cell).trim() === '');
-                if (isRowEmpty) return; 
-
-                const sheetRowIndex = (data[0][0] === headers[0] ? rowIndex + 2 : rowIndex + 1);
-                
-                html += `<tr data-row-index="${sheetRowIndex}">`;
-                
-                for (let i = 0; i < headers.length; i++) {
-                    const cellValue = row[i] !== undefined ? row[i] : '';
-                    
-                    const sheetCol = String.fromCharCode(65 + i);
-                    const sheetRange = `${sheetCol}${sheetRowIndex}`;
-
-                    let editAttributes = '';
-                    let cellClasses = '';
-
-                    const isCellEditable = (isStatusEditable && i === 5);
-
-                    if (isCellEditable) {
-                        editAttributes = `contenteditable="true"
-                                         onblur="handleCellEdit(this, '${sheetRange}', '${sheetName}')"
-                                         data-original-value="${cellValue}"
-                                         data-sheet-range="${sheetRange}"`;
-                        
-                        cellClasses = 'cursor-text hover:bg-indigo-50/50 focus:bg-indigo-100 border border-transparent focus:border-indigo-400 transition';
-                    }
-                    
-                    let columnsToExpand = [];
-                    if (isConferencia) {
-                         columnsToExpand = [1, 2, 3, 4, 5, 6]; 
-                    }
-                    
-                    if (columnsToExpand.includes(i + 1)) { 
-                         cellClasses += ' expand-mode-cell'; 
-                    }
-
-                    html += `<td ${editAttributes} class="${cellClasses}">${cellValue}</td>`;
-                }
-                html += `</tr>`;
-            });
-            
-            html += `</tbody></table></div>`;
-            return html;
         }
 
         /**
@@ -2479,38 +2346,6 @@
             }
         }
 
-        // --- Inicialização ---
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const chaveInput = document.getElementById("chave-acesso-input");
-            if (chaveInput) {
-                chaveInput.addEventListener('keydown', function(event) {
-                    if (event.key === 'Enter') {
-                        event.preventDefault(); 
-                        importarXMLPorChave(); 
-                    }
-                });
-            }
-
-            document.getElementById('password').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    login();
-                }
-            });
-            
-            document.getElementById('username').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    login();
-                }
-            });
-            
-            // ✅ INICIALIZA O APP (AGORA COM SISTEMA DE LEMBRAR LOGIN CORRIGIDO)
-            initializeApp();
-            
-            // Configuração Android
-            setTimeout(setupAndroidPrint, 1000);
-        });
-
         // ✅ DETECTA SE ESTÁ NO APK ANDROID E CONFIGURA IMPRESSÃO
         function setupAndroidPrint() {
             // Verifica se está no APK Android (interface Android existe)
@@ -2550,11 +2385,6 @@
                 console.log("✅ Impressão Android configurada com sucesso!");
             }
         }
-
-        // ✅ TAMBÉM EXECUTA QUANDO A PÁGINA ESTIVER COMPLETAMENTE CARREGADA
-        window.addEventListener('load', function() {
-            setTimeout(setupAndroidPrint, 500);
-        });
 
         // ✅ FUNÇÃO EXPORTAR PARA EXCEL (MELHORADA - FUNCIONAL)
         function exportarParaExcel() {
@@ -2648,7 +2478,49 @@
                 window.print();
             }
         }
+
+        // --- Inicialização ---
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("🎯 DOM Carregado - Iniciando app...");
             
+            // Configura listeners de teclado
+            const chaveInput = document.getElementById("chave-acesso-input");
+            if (chaveInput) {
+                chaveInput.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault(); 
+                        importarXMLPorChave(); 
+                    }
+                });
+            }
+
+            document.getElementById('password').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    login();
+                }
+            });
+            
+            document.getElementById('username').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    login();
+                }
+            });
+            
+            // Configura impressão Android
+            setTimeout(setupAndroidPrint, 1000);
+            
+            // Inicializa com delay para WebView
+            setTimeout(() => {
+                initializeApp();
+            }, 1000);
+        });
+
+        // ✅ TAMBÉM EXECUTA QUANDO A PÁGINA ESTIVER COMPLETAMENTE CARREGADA
+        window.addEventListener('load', function() {
+            setTimeout(setupAndroidPrint, 500);
+        });
+		
     </script>
 </body>
 </html>
