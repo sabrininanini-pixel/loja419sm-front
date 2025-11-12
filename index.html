@@ -1257,8 +1257,22 @@ async function getNotasFiscaisInfo() {
                 const firstCell = String(row[0]).trim();
                 
                 // Verifica se é uma linha de informação de nota fiscal
-                if (firstCell.startsWith('NF:') && firstCell.includes('Data:') && firstCell.includes('Pedido:') && firstCell.includes('Chave:')) {
-                    notasInfo.push(firstCell);
+                if (firstCell.includes('Data:') && firstCell.includes('Pedido:') && firstCell.includes('Chave:')) {
+                    // ✅ SUBSTITUI OS NOMES PARA O FORMATO SOLICITADO
+                    let formattedInfo = firstCell;
+                    
+                    // Substitui "NF:" por "Nfe:"
+                    formattedInfo = formattedInfo.replace(/NF:/g, 'Nfe:');
+                    
+                    // Substitui "Data:" por "Data de emissão:"
+                    formattedInfo = formattedInfo.replace(/Data:/g, 'Data de emissão:');
+                    
+                    // Substitui "Pedido:" por "Pedido Capta:"
+                    formattedInfo = formattedInfo.replace(/Pedido:/g, 'Pedido Capta:');
+                    
+                    // Mantém "Chave:" (já está correto)
+                    
+                    notasInfo.push(formattedInfo);
                 }
             }
         }
