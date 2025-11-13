@@ -305,6 +305,30 @@
             padding: 10px 0 !important;
         }
     }
+
+
+/* 🔥 CORREÇÃO DEFINITIVA PARA HEADER MOBILE/DESKTOP */
+.header-mobile {
+    display: none;
+}
+
+.header-desktop {
+    display: none;
+}
+
+@media (max-width: 767px) {
+    .header-mobile {
+        display: flex !important;
+    }
+}
+
+@media (min-width: 768px) {
+    .header-desktop {
+        display: flex !important;
+    }
+}
+
+	   
 </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -371,7 +395,7 @@
             <header class="print-hidden" style="background: linear-gradient(135deg, #1e3a8a, #3730a3); color: white; margin: 0; padding: 16px 0; width: 100vw; margin-left: calc(-50vw + 50%);">
     <div class="w-full">
        <!-- MOBILE LAYOUT - COM DISPLAY CONDICIONAL -->
-<div style="display: none; @media (max-width: 767px) { display: flex !important; } align-items: center; justify-content: space-between; padding: 8px 12px; font-family: 'Poppins', sans-serif;">
+<div class="header-mobile" style="align-items: center; justify-content: space-between; padding: 8px 12px; font-family: 'Poppins', sans-serif;">
     <!-- LOGO À ESQUERDA -->
     <a href="https://www.gtgo.com.br" style="text-decoration: none; color: inherit; flex-shrink: 0;">
         <div style="font-size: 14px; font-weight: bold; white-space: nowrap;">GTGO</div>
@@ -390,7 +414,7 @@
     </button>
 </div>
         <!-- DESKTOP LAYOUT -->
-        <div class="hidden md:flex justify-between items-center max-w-7xl mx-auto px-4">
+       <div class="header-desktop justify-between items-center max-w-7xl mx-auto px-4">
             <!-- LOGO GTGO COM LINK -->
             <a href="https://www.gtgo.com.br" class="flex flex-col items-center text-center" style="text-decoration: none; color: inherit;">
                 <div class="text-xl font-bold">GTGO</div>
