@@ -261,7 +261,31 @@
         gap: 15px;
     }
 }
-		
+
+		/* AJUSTES ESPECÍFICOS PARA HEADER MOBILE */
+@media (max-width: 768px) {
+    header {
+        padding: 10px 0 !important;
+    }
+    
+    .md-hidden .text-sm {
+        font-size: 13px !important;
+    }
+    
+    .md-hidden .text-xs {
+        font-size: 10px !important;
+    }
+    
+    /* Garantir que o título ocupe espaço proporcional */
+    .md-hidden .flex-1 {
+        min-width: 0; /* Permite que o texto quebre */
+    }
+    
+    .md-hidden .mx-2 {
+        margin-left: 8px !important;
+        margin-right: 8px !important;
+    }
+}
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -328,25 +352,26 @@
             <header class="print-hidden" style="background: linear-gradient(135deg, #1e3a8a, #3730a3); color: white; margin: 0; padding: 16px 0; width: 100vw; margin-left: calc(-50vw + 50%);">
     <div class="w-full">
         <!-- MOBILE LAYOUT -->
-        <div class="md:hidden flex flex-col items-center space-y-3 px-4">
-            <!-- LOGO E TÍTULO NA MESMA LINHA -->
-            <div class="flex items-center justify-between w-full">
-                <a href="https://www.gtgo.com.br" class="flex items-center space-x-2" style="text-decoration: none; color: inherit;">
-                    <div class="text-lg font-bold">GTGO</div>
-                </a>
-                <button onclick="logout()" class="flex items-center space-x-1 px-3 py-1 rounded text-sm border"
-                        style="background: rgba(255, 255, 255, 0.2); color: white; border-color: rgba(255, 255, 255, 0.3);">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Sair</span>
-                </button>
-            </div>
-            
-            <!-- TÍTULO CENTRAL -->
-            <div class="text-center w-full">
-                <h1 class="text-xl font-semibold">Conferir Nota Fiscal</h1>
-                <p class="text-xs opacity-90 mt-1">Sistema de conferência</p>
-            </div>
-        </div>
+        <!-- MOBILE LAYOUT -->
+<div class="md:hidden flex items-center justify-between px-4">
+    <!-- LOGO À ESQUERDA -->
+    <a href="https://www.gtgo.com.br" class="flex items-center" style="text-decoration: none; color: inherit;">
+        <div class="text-lg font-bold">GTGO</div>
+    </a>
+    
+    <!-- TÍTULO CENTRAL COMPACTO -->
+    <div class="text-center flex-1 mx-2">
+        <h1 class="text-sm font-semibold leading-tight">Conferir Nota Fiscal</h1>
+        <p class="text-xs opacity-90">Sistema de conferência</p>
+    </div>
+    
+    <!-- BOTÃO SAIR COMPACTO -->
+    <button onclick="logout()" class="flex items-center space-x-1 px-2 py-1 rounded text-xs border whitespace-nowrap"
+            style="background: rgba(255, 255, 255, 0.2); color: white; border-color: rgba(255, 255, 255, 0.3);">
+        <i class="fas fa-sign-out-alt"></i>
+        <span>Sair</span>
+    </button>
+</div>
 
         <!-- DESKTOP LAYOUT -->
         <div class="hidden md:flex justify-between items-center max-w-7xl mx-auto px-4">
