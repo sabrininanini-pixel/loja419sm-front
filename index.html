@@ -1,322 +1,311 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+	
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Conferir Nota Fiscal</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
+
+
+	
     <!-- ✅ CACHE BUSTING - FORÇA ATUALIZAÇÃO -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <style>
+   <style>
+    /* ✅ NOVO ESTILO BASE - MODERNO */
+    :root {
+        --primary: #6388f1;
+        --primary-dark: #4f46e5;
+        --secondary: #6c757d;
+        --success: #10b981;
+        --light: #f8f9fa;
+        --dark: #374151;
+        --border: #e5e7eb;
+        --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        --font-main: 'Poppins', sans-serif;
+        --bg-color: #f8fafc;
+    }
+    
+    body {
+        font-family: var(--font-main) !important;
+        background-color: var(--bg-color);
+        color: var(--dark);
+        line-height: 1.6;
+    }
+
+    .mock-table th, .mock-table td {
+        padding: 14px 16px !important;
+        text-align: left;
+        border-bottom: 1px solid var(--border); 
+        border-right: 1px solid var(--border); 
+        font-family: var(--font-main) !important;
+    }
+    
+    .mock-table th:last-child, .mock-table td:last-child {
+        border-right: none;
+    }
+
+    .mock-table th {
+        font-weight: 600 !important;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--dark) !important;
+        background-color: var(--light) !important;
+    }
+    
+    .mock-table tr:hover {
+        background-color: #f8f9fa !important;
+    }
+
+    /* ✅ NOVO HEADER COM GRADIENTE E PADRÃO */
+    header.print-hidden {
+        background: 
+            repeating-linear-gradient(0deg, rgba(255,255,255,0.1), rgba(255,255,255,0.1) 2px, transparent 2px, transparent 4px),
+            linear-gradient(135deg, #0f172a, #1e1b4b) !important;
+        color: white;
+        margin: 0;
+        padding: 16px 0;
+        width: 100vw;
+        margin-left: calc(-50vw + 50%);
+        position: relative;
+        overflow: hidden;
+        font-family: var(--font-main) !important;
+    }
+
+    /* 🔥 MANTENHA O RESTO DO SEU CSS ATUAL AQUI (modo scroll, impressão, etc) */
+    /* ---------------------------------------------------------------- */
+    /* --- Estilos de Edição/Conferência --- */
+    /* ---------------------------------------------------------------- */
+    
+    /* Estilos base para a coluna Diferença (5ª coluna visível) */
+    #conferencia-content tr td:nth-child(5) { 
+        font-weight: bold;
+        text-align: center; 
+    }
+
+    /* ---------------------------------------------------------------- */
+    /* --- LARGURAS FIXAS GERAIS (DEFAULT TRUNCADO) --- */
+    /* --- Esta regra é "desligada" pela classe .expand-mode-cell --- */
+    /* ---------------------------------------------------------------- */
+    
+    /* Coluna 1 (Código de Barras - 210px) da Conferência */
+    #conferencia-table th:nth-child(1),
+    #conferencia-table td:nth-child(1) {
+         width: 210px; 
+         min-width: 210px;
+         max-width: 210px;
+         overflow: hidden; 
+         text-overflow: ellipsis;
+         white-space: nowrap;
+    }
+    
+    /* Colunas numéricas/estreitas (70px) da Conferência */
+    #conferencia-table th:nth-child(3), 
+    #conferencia-table td:nth-child(3),
+    #conferencia-table th:nth-child(4), 
+    #conferencia-table td:nth-child(4),
+    #conferencia-table th:nth-child(5), 
+    #conferencia-table td:nth-child(5),
+    #conferencia-table th:nth-child(6), 
+    #conferencia-table td:nth-child(6) {
+         width: 70px; 
+         min-width: 70px;
+         max-width: 70px;
+         overflow: hidden; 
+         text-overflow: ellipsis;
+         white-space: nowrap;
+    }
+    
+    /* Colunas numéricas/estreitas (70px) da Nota Fiscal */
+    #notafiscal-table th:nth-child(2),
+    #notafiscal-table td:nth-child(2),
+    #notafiscal-table th:nth-child(4),
+    #notafiscal-table td:nth-child(4) {
+         width: 70px; 
+         min-width: 70px;
+         max-width: 70px;
+         overflow: hidden; 
+         text-overflow: ellipsis;
+         white-space: nowrap;
+         text-align: center; 
+    }
+
+    /* Coluna Código de Barras (300px) da Contagem Loja */
+    #contagem-table th:nth-child(1),
+    #contagem-table td:nth-child(1) {
+        width: 300px !important;
+        min-width: 300px !important;
+        max-width: 300px !important;
+        overflow: hidden; 
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        text-align: left;
+    }
+
+    /* Coluna Descrição da Contagem Loja - CORRIGIDA: REMOVIDO PADDING E ALINHAMENTO À ESQUERDA */
+    #contagem-table th:nth-child(2),
+    #contagem-table td:nth-child(2) {
+        padding-left: 0 !important;
+        width: auto;
+        text-align: left !important;
+    }
+
+    /* Centraliza os valores numéricos da CONFERENCIA */
+    #conferencia-table td:nth-child(3), 
+    #conferencia-table td:nth-child(4),
+    #conferencia-table td:nth-child(5) {
+         text-align: center; 
+    }
+
+    /* ---------------------------------------------------------------- */
+    /* --- ESTILOS DE MODO (TOGGLE POR JS) --- */
+    /* ---------------------------------------------------------------- */
+
+    /* Estilo base para MODO EXPANDIDO */
+    .expand-mode-cell {
+        max-width: none !important;
+        min-width: 0 !important;
+        overflow-x: visible !important;
+        white-space: normal !important;
+    }
+
+    /* Classe para MODO SCROLL (COLUNAS DE DESCRIÇÃO E TEXTO LONGO - 150px) */
+    .scroll-mode-cell {
+        max-width: 150px !important; 
+        min-width: 150px !important;
+        overflow-x: auto !important; 
+        white-space: nowrap !important; 
+        text-overflow: clip !important;
+    }
+    
+    /* Classe para MODO SCROLL (COLUNAS NUMÉRICAS OU ESTREITAS - 70px) */
+    .scroll-mode-cell-numeric {
+        width: 70px !important; 
+        min-width: 70px !important;
+        max-width: 70px !important;
+        overflow-x: auto !important; 
+        white-space: nowrap !important;
+        text-overflow: clip !important;
+        text-align: left !important;
+    }
+    
+    /* Classe para Código de Barras (210px) */
+    .scroll-mode-cell-code {
+        width: 210px !important; 
+        min-width: 210px !important;
+        max-width: 210px !important;
+        overflow-x: auto !important; 
+        white-space: nowrap !important;
+        text-overflow: clip !important;
+        text-align: left !important;
+    }
+
+    /* Classes usadas pelo JavaScript para aplicar as cores */
+    .bg-fee2e2 { background-color: #fee2e2; }
+    .text-b91c1c { color: #b91c1c; }
+    .bg-green-100 { background-color: #d1fae5; }
+    .text-green-700 { color: #047857; }
+
+    /* Estilo para linhas com código mas sem descrição na Contagem Loja */
+    .bg-red-50 {
+        background-color: #fecaca !important;
+    }
+
+    .bg-red-50:hover {
+        background-color: #fecaca !important;
+    }
+
+    /* Estilo para células editáveis */
+    [contenteditable="true"]:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px #c7d2fe; 
+    }
+    
+    /* ---------------------------------------------------------------- */
+    /* --- Estilos de Impressão (A4) --- */
+    /* ---------------------------------------------------------------- */
+    @media print {
+        body {
+            margin: 0;
+            padding: 0;
+            width: 210mm; 
+            min-height: 297mm;
+        }
+
+        .container, .bg-white, .shadow-lg {
+            box-shadow: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            max-width: none !important;
+            border: none !important;
+        }
+        header, nav, #paste-modal, #notifications-container, .print-hidden {
+            display: none !important;
+        }
+
+        .mock-table {
+            width: 100%;
+            font-size: 10pt;
+        }
         .mock-table th, .mock-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #e5e7eb; 
-            border-right: 1px solid #e5e7eb; 
+            padding: 4px; 
+            border-bottom: 1px solid #ccc;
+            border-right: 1px solid #ccc;
         }
         
-        /* Regra para remover a linha vertical da última coluna */
-        .mock-table th:last-child, .mock-table td:last-child {
-            border-right: none;
-        }
-
-        .mock-table th {
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #4b5563; /* gray-600 */
-        }
-        .mock-table tr:hover {
-            background-color: #f9fafb; /* gray-50 */
-        }
-
-        /* ---------------------------------------------------------------- */
-        /* --- Estilos de Edição/Conferência --- */
-        /* ---------------------------------------------------------------- */
-        
-        /* Estilos base para a coluna Diferença (5ª coluna visível) */
-        #conferencia-content tr td:nth-child(5) { 
-            font-weight: bold;
-            text-align: center; 
-        }
-
-        /* ---------------------------------------------------------------- */
-        /* --- LARGURAS FIXAS GERAIS (DEFAULT TRUNCADO) --- */
-        /* --- Esta regra é "desligada" pela classe .expand-mode-cell --- */
-        /* ---------------------------------------------------------------- */
-        
-        /* Coluna 1 (Código de Barras - 210px) da Conferência */
-        #conferencia-table th:nth-child(1),
-        #conferencia-table td:nth-child(1) {
-             width: 210px; 
-             min-width: 210px;
-             max-width: 210px;
-             overflow: hidden; 
-             text-overflow: ellipsis;
-             white-space: nowrap;
-        }
-        
-        /* Colunas numéricas/estreitas (70px) da Conferência */
-        #conferencia-table th:nth-child(3), 
-        #conferencia-table td:nth-child(3),
-        #conferencia-table th:nth-child(4), 
-        #conferencia-table td:nth-child(4),
-        #conferencia-table th:nth-child(5), 
-        #conferencia-table td:nth-child(5),
-        #conferencia-table th:nth-child(6), 
-        #conferencia-table td:nth-child(6) {
-             width: 70px; 
-             min-width: 70px;
-             max-width: 70px;
-             overflow: hidden; 
-             text-overflow: ellipsis;
-             white-space: nowrap;
-        }
-        
-        /* Colunas numéricas/estreitas (70px) da Nota Fiscal */
-        #notafiscal-table th:nth-child(2),
-        #notafiscal-table td:nth-child(2),
-        #notafiscal-table th:nth-child(4),
-        #notafiscal-table td:nth-child(4) {
-             width: 70px; 
-             min-width: 70px;
-             max-width: 70px;
-             overflow: hidden; 
-             text-overflow: ellipsis;
-             white-space: nowrap;
-             text-align: center; 
-        }
-
-        /* Coluna Código de Barras (300px) da Contagem Loja */
-        #contagem-table th:nth-child(1),
-        #contagem-table td:nth-child(1) {
-            width: 300px !important;
-            min-width: 300px !important;
-            max-width: 300px !important;
-            overflow: hidden; 
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            text-align: left;
-        }
-
-        /* Coluna Descrição da Contagem Loja - CORRIGIDA: REMOVIDO PADDING E ALINHAMENTO À ESQUERDA */
-        #contagem-table th:nth-child(2),
-        #contagem-table td:nth-child(2) {
-            padding-left: 0 !important; /* REMOVIDO PADDING FIXO */
-            width: auto;
-            text-align: left !important;
-        }
-
-        /* Centraliza os valores numéricos da CONFERENCIA */
-        #conferencia-table td:nth-child(3), 
-        #conferencia-table td:nth-child(4),
-        #conferencia-table td:nth-child(5) {
-             text-align: center; 
-        }
-
-        /* ---------------------------------------------------------------- */
-        /* --- ESTILOS DE MODO (TOGGLE POR JS) --- */
-        /* ---------------------------------------------------------------- */
-
-        /* Estilo base para MODO EXPANDIDO (Permite que a célula se ajuste ao conteúdo - Padrão) */
-        .expand-mode-cell {
+        .scroll-mode-cell, .scroll-mode-cell-numeric, .expand-mode-cell, .scroll-mode-cell-code {
             max-width: none !important;
             min-width: 0 !important;
             overflow-x: visible !important;
             white-space: normal !important;
         }
-
-        /* Classe para MODO SCROLL (COLUNAS DE DESCRIÇÃO E TEXTO LONGO - 150px) */
-        .scroll-mode-cell {
-            max-width: 150px !important; 
-            min-width: 150px !important;
-            overflow-x: auto !important; 
-            white-space: nowrap !important; 
-            text-overflow: clip !important;
+    }
+    
+    /* ---------------------------------------------------------------- */
+    /* --- Ajuste de Notificação para Mobile (Compactação) --- */
+    /* ---------------------------------------------------------------- */
+    @media (max-width: 640px) {
+        #notifications-container > div {
+            padding: 0.5rem !important; 
+            gap: 0.5rem !important; 
+            max-width: 80vw;
         }
         
-        /* Classe para MODO SCROLL (COLUNAS NUMÉRICAS OU ESTREITAS - 70px) */
-        .scroll-mode-cell-numeric {
-            width: 70px !important; 
-            min-width: 70px !important;
-            max-width: 70px !important;
-            overflow-x: auto !important; 
-            white-space: nowrap !important;
-            text-overflow: clip !important;
-            text-align: left !important;
+        #notifications-container > div p {
+            font-size: 0.875rem !important;
         }
         
-        /* Classe para Código de Barras (210px) */
-        .scroll-mode-cell-code {
-            width: 210px !important; 
-            min-width: 210px !important;
-            max-width: 210px !important;
-            overflow-x: auto !important; 
-            white-space: nowrap !important;
-            text-overflow: clip !important;
-            text-align: left !important;
+        #notifications-container > div svg {
+            width: 1.25rem !important;
+            height: 1.25rem !important;
         }
+    }
 
-        /* Classes usadas pelo JavaScript para aplicar as cores */
-        .bg-fee2e2 { background-color: #fee2e2; } /* Vermelho suave (red-100) */
-        .text-b91c1c { color: #b91c1c; } /* Vermelho escuro (red-700) */
-        .bg-green-100 { background-color: #d1fae5; } /* Verde suave */
-        .text-green-700 { color: #047857; } /* Verde escuro */
-
-        /* Estilo para linhas com código mas sem descrição na Contagem Loja - CORRIGIDO */
-        .bg-red-50 {
-            background-color: #fecaca !important;
-        }
-
-        .bg-red-50:hover {
-            background-color: #fecaca !important; /* Vermelho mais escuro no hover */
-        }
-
-        /* Estilo para células editáveis (Contagem Loja / OBS) */
-        [contenteditable="true"]:focus {
-            outline: none;
-            box-shadow: 0 0 0 2px #c7d2fe; 
+    /* RESPONSIVO */
+    @media (max-width: 768px) {
+        header .flex {
+            flex-direction: column;
+            gap: 15px;
         }
         
-        /* ---------------------------------------------------------------- */
-        /* --- Estilos de Impressão (A4) --- */
-        /* ---------------------------------------------------------------- */
-        @media print {
-            body {
-                margin: 0;
-                padding: 0;
-                width: 210mm; 
-                min-height: 297mm;
-            }
-
-            .container, .bg-white, .shadow-lg {
-                box-shadow: none !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                width: 100% !important;
-                max-width: none !important;
-                border: none !important;
-            }
-            header, nav, #paste-modal, #notifications-container, .print-hidden {
-                display: none !important;
-            }
-
-            .mock-table {
-                width: 100%;
-                font-size: 10pt;
-            }
-            .mock-table th, .mock-table td {
-                padding: 4px; 
-                border-bottom: 1px solid #ccc;
-                border-right: 1px solid #ccc;
-            }
-            
-            /* Força todas as colunas a expandir na impressão */
-            .scroll-mode-cell, .scroll-mode-cell-numeric, .expand-mode-cell, .scroll-mode-cell-code {
-                max-width: none !important;
-                min-width: 0 !important;
-                overflow-x: visible !important;
-                white-space: normal !important;
-            }
+        .nf-info {
+            flex-direction: column;
+            gap: 15px;
         }
         
-        /* ---------------------------------------------------------------- */
-        /* --- Ajuste de Notificação para Mobile (Compactação) --- */
-        /* ---------------------------------------------------------------- */
-        /* Aplica em telas pequenas (max-width de 640px) para reduzir o tamanho da notificação */
-        @media (max-width: 640px) {
-            /* Alvo: O div de notificação */
-            #notifications-container > div {
-                /* Reduz o padding (p-4 -> p-2) */
-                padding: 0.5rem !important; 
-                /* Reduz o espaçamento entre ícone e texto (space-x-3 -> space-x-2) */
-                gap: 0.5rem !important; 
-                /* Limita a largura para garantir que não ocupe demais */
-                max-width: 80vw;
-            }
-            /* Alvo: O parágrafo de texto */
-            #notifications-container > div p {
-                font-size: 0.875rem !important; /* text-sm (14px) */
-            }
-            /* Alvo: O SVG do ícone */
-            #notifications-container > div svg {
-                width: 1.25rem !important; /* h-5 (20px) */
-                height: 1.25rem !important;
-            }
+        /* ✅ HEADER MOBILE COM NOVO ESTILO */
+        header.print-hidden {
+            padding: 10px 0 !important;
         }
-
-
-/* RESPONSIVO */
-@media (max-width: 768px) {
-    header .flex {
-        flex-direction: column;
-        gap: 15px;
     }
-    
-    .nf-info {
-        flex-direction: column;
-        gap: 15px;
-    }
-}
-
-		/* AJUSTES ESPECÍFICOS PARA HEADER MOBILE */
-@media (max-width: 768px) {
-    header {
-        padding: 10px 0 !important;
-    }
-    
-    .md-hidden .text-sm {
-        font-size: 13px !important;
-    }
-    
-    .md-hidden .text-xs {
-        font-size: 10px !important;
-    }
-    
-    /* Garantir que o título ocupe espaço proporcional */
-    .md-hidden .flex-1 {
-        min-width: 0; /* Permite que o texto quebre */
-    }
-    
-    .md-hidden .mx-2 {
-        margin-left: 8px !important;
-        margin-right: 8px !important;
-    }
-}
-
-
-
-		/* GARANTIR HEADER MOBILE COMPACTO */
-@media (max-width: 768px) {
-    header {
-        padding: 8px 0 !important;
-    }
-    
-    .md-hidden.flex.items-center.justify-between {
-        min-height: 40px; /* Altura mínima consistente */
-    }
-    
-    /* Forçar que os elementos fiquem na mesma linha */
-    .md-hidden .flex-shrink-0,
-    .md-hidden .flex-1,
-    .md-hidden .flex-shrink-0 {
-        display: flex;
-        align-items: center;
-    }
-    
-    /* Ajustar altura do header no mobile */
-    .md-hidden {
-        height: auto;
-        min-height: 44px;
-    }
-}
-
-
-		
-    </style>
+</style>
 </head>
 <body class="bg-gray-50 min-h-screen">
 
@@ -381,17 +370,18 @@
         <div class="mx-auto px-0 py-0 md:px-8">
             <header class="print-hidden" style="background: linear-gradient(135deg, #1e3a8a, #3730a3); color: white; margin: 0; padding: 16px 0; width: 100vw; margin-left: calc(-50vw + 50%);">
     <div class="w-full">
-        <!-- MOBILE LAYOUT COM CSS INLINE -->
-<div class="md:hidden" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px;">
+       <!-- MOBILE LAYOUT COM CSS INLINE -->
+<div class="md:hidden" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; font-family: 'Poppins', sans-serif;">
     <!-- LOGO À ESQUERDA -->
     <a href="https://www.gtgo.com.br" style="text-decoration: none; color: inherit; flex-shrink: 0;">
         <div style="font-size: 14px; font-weight: bold; white-space: nowrap;">GTGO</div>
     </a>
     
+    <!-- TÍTULO CENTRAL COMPACTO -->
     <div style="flex: 1; text-align: center; margin: 0 8px; min-width: 0;">
-    <h1 style="font-size: 12px; font-weight: 600; line-height: 1.2; margin: 0; overflow: hidden; text-overflow: ellipsis;">Conferir Nota Fiscal</h1>
-    <p style="font-size: 10px; opacity: 0.9; margin: 0; overflow: hidden; text-overflow: ellipsis;">Sistema de conferência</p>
-</div>
+        <h1 style="font-size: 12px; font-weight: 600; line-height: 1.2; margin: 0; overflow: hidden; text-overflow: ellipsis;">Conferir Nota Fiscal</h1>
+        <p style="font-size: 10px; opacity: 0.9; margin: 0; overflow: hidden; text-overflow: ellipsis;">Sistema de conferência</p>
+    </div>
     
     <!-- BOTÃO SAIR COMPACTO -->
     <button onclick="logout()" style="flex-shrink: 0; display: flex; align-items: center; gap: 4px; padding: 6px 8px; border-radius: 6px; font-size: 11px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.2); color: white; white-space: nowrap;">
