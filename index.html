@@ -286,6 +286,36 @@
         margin-right: 8px !important;
     }
 }
+
+
+
+		/* GARANTIR HEADER MOBILE COMPACTO */
+@media (max-width: 768px) {
+    header {
+        padding: 8px 0 !important;
+    }
+    
+    .md-hidden.flex.items-center.justify-between {
+        min-height: 40px; /* Altura mínima consistente */
+    }
+    
+    /* Forçar que os elementos fiquem na mesma linha */
+    .md-hidden .flex-shrink-0,
+    .md-hidden .flex-1,
+    .md-hidden .flex-shrink-0 {
+        display: flex;
+        align-items: center;
+    }
+    
+    /* Ajustar altura do header no mobile */
+    .md-hidden {
+        height: auto;
+        min-height: 44px;
+    }
+}
+
+
+		
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -354,7 +384,7 @@
         <!-- MOBILE LAYOUT - VERSÃO EXTREMA -->
 <div class="md:hidden flex items-center justify-between px-2 py-1">
     <!-- LOGO -->
-    <div class="text-sm font-bold whitespace-nowrap">GTGO</div>
+    <div class="text-sm font-bold whitespace-nowrap">GTGO1</div>
     
     <!-- TÍTULO SUPER COMPACTO -->
     <div class="flex-1 text-center mx-1">
