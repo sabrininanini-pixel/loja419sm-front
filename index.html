@@ -59,9 +59,9 @@
         background-color: var(--light) !important;
     }
     
-    .mock-table tr:hover {
-        background-color: #f8f9fa !important;
-    }
+	   .mock-table tr:hover:not(#contagem-table tr) {
+    background-color: #f8f9fa !important;
+}
 
     /* ✅ NOVO HEADER COM GRADIENTE E PADRÃO */
     header.print-hidden {
@@ -328,9 +328,7 @@
     }
 }
 
-	   #contagem-table tr:hover {
-    background-color: inherit !important;
-}
+	 
 	   
 </style>
 </head>
