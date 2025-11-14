@@ -415,26 +415,27 @@
     </button>
 </div>
         <!-- DESKTOP LAYOUT -->
-      <div class="header-desktop flex items-center justify-between max-w-7xl mx-auto px-4 relative">
-    <!-- LOGO GTGO COM LINK -->
-    <a href="https://www.gtgo.com.br" class="flex flex-col items-center text-center z-10">
-        <div class="text-xl font-bold">GTGO</div>
-        <div class="text-xs opacity-90 mt-1">Gestão avançada</div>
-    </a>
-    
-    <!-- TÍTULO CENTRAL - ABSOLUTO NO MEIO -->
-    <div class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-        <h1 class="text-2xl font-semibold mb-1">Conferir NFe</h1>
-        <p class="text-sm opacity-90">Sistema de conferência e gestão de notas fiscais</p>
+      <div class="header-desktop justify-between items-center max-w-7xl mx-auto px-4">
+            <!-- LOGO GTGO COM LINK -->
+            <a href="https://www.gtgo.com.br" class="flex flex-col items-center text-center" style="text-decoration: none; color: inherit;">
+                <div class="text-xl font-bold">GTGO</div>
+                <div class="text-xs opacity-90 mt-1">Gestão Avançada</div>
+            </a>
+            
+            <!-- TÍTULO CENTRAL -->
+            <div class="flex-1 text-center">
+                <h1 class="text-2xl font-semibold mb-1">Conferir NFe</h1>
+                <p class="text-sm opacity-90 max-w-md mx-auto">Sistema de conferência e gestão de notas fiscais</p>
+            </div>
+            
+            <!-- BOTÃO SAIR ESTILIZADO -->
+            <button onclick="logout()" class="flex items-center space-x-2 px-4 py-2 rounded-lg transition duration-150 text-sm font-medium border"
+                    style="background: rgba(255, 255, 255, 0.2); color: white; border-color: rgba(255, 255, 255, 0.3);">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Sair</span>
+            </button>
+        </div>
     </div>
-    
-    <!-- BOTÃO SAIR ESTILIZADO -->
-    <button onclick="logout()" class="flex items-center space-x-2 px-4 py-2 rounded-lg transition duration-150 text-sm font-medium border z-10"
-            style="background: rgba(255, 255, 255, 0.2); color: white; border-color: rgba(255, 255, 255, 0.3);">
-        <i class="fas fa-sign-out-alt"></i>
-        <span>Sair</span>
-    </button>
-</div>
 </header>
 
             <div class="bg-white rounded-xl shadow-lg border border-gray-100 px-0 pt-6 pb-6 md:p-6">
