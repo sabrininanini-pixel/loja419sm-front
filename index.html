@@ -63,21 +63,32 @@
     background-color: #f8f9fa !important;
 }
 
-    /* ✅ NOVO HEADER COM GRADIENTE E PADRÃO */
-    header.print-hidden {
-        background: 
-            repeating-linear-gradient(0deg, rgba(255,255,255,0.1), rgba(255,255,255,0.1) 2px, transparent 2px, transparent 4px),
-            linear-gradient(135deg, #0f172a, #1e1b4b) !important;
-        color: white;
-        margin: 0;
-        padding: 16px 0;
-        width: 100vw;
-        margin-left: calc(-50vw + 50%);
-        position: relative;
-        overflow: hidden;
-        font-family: var(--font-main) !important;
-    }
+    /* ✅ HEADER CORRIGIDO - SEM SCROLL HORIZONTAL */
+header.print-hidden {
+    background: 
+        repeating-linear-gradient(0deg, rgba(255,255,255,0.1), rgba(255,255,255,0.1) 2px, transparent 2px, transparent 4px),
+        linear-gradient(135deg, #0f172a, #1e1b4b) !important;
+    color: white;
+    margin: 0;
+    padding: 16px 0;
+    width: 100%; /* ✅ MUDOU DE 100vw PARA 100% */
+    position: relative;
+    overflow: hidden; /* ✅ JÁ ESTAVA CORRETO */
+    font-family: var(--font-main) !important;
+    /* ❌ REMOVE: margin-left: calc(-50vw + 50%) */
+}
 
+/* ✅ GARANTIR QUE O CONTEÚDO INTERNO NÃO CAUSE SCROLL */
+header.print-hidden .w-full {
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* ✅ CORREÇÃO EXTRA PARA O BODY */
+body {
+    overflow-x: hidden; /* ✅ IMPEDE SCROLL HORIZONTAL NO BODY */
+    max-width: 100vw;
+}
     /* 🔥 MANTENHA O RESTO DO SEU CSS ATUAL AQUI (modo scroll, impressão, etc) */
     /* ---------------------------------------------------------------- */
     /* --- Estilos de Edição/Conferência --- */
@@ -95,7 +106,9 @@
     /* ---------------------------------------------------------------- */
     
     /* Coluna 1 (Código de Barras - 210px) da Conferência */
-    #conferencia-table th:nth-child(1),
+    
+	/*  
+	#conferencia-table th:nth-child(1),
     #conferencia-table td:nth-child(1) {
          width: 210px; 
          min-width: 210px;
@@ -104,8 +117,9 @@
          text-overflow: ellipsis;
          white-space: nowrap;
     }
-    
-    /* Colunas numéricas/estreitas (70px) da Conferência */
+    */
+	   
+    /* Colunas numéricas/estreitas (70px) da Conferência 
     #conferencia-table th:nth-child(3), 
     #conferencia-table td:nth-child(3),
     #conferencia-table th:nth-child(4), 
@@ -122,7 +136,7 @@
          white-space: nowrap;
     }
     
-    /* Colunas numéricas/estreitas (70px) da Nota Fiscal */
+    /* Colunas numéricas/estreitas (70px) da Nota Fiscal 
     #notafiscal-table th:nth-child(2),
     #notafiscal-table td:nth-child(2),
     #notafiscal-table th:nth-child(4),
@@ -135,7 +149,7 @@
          white-space: nowrap;
          text-align: center; 
     }
-
+*/
     /* Coluna Código de Barras (300px) da Contagem Loja */
     #contagem-table th:nth-child(1),
     #contagem-table td:nth-child(1) {
@@ -174,6 +188,7 @@
         overflow-x: visible !important;
         white-space: normal !important;
     }
+
 
     /* Classe para MODO SCROLL (COLUNAS DE DESCRIÇÃO E TEXTO LONGO - 150px) */
     .scroll-mode-cell {
@@ -230,43 +245,158 @@
     /* ---------------------------------------------------------------- */
     /* --- Estilos de Impressão (A4) --- */
     /* ---------------------------------------------------------------- */
-    @media print {
-        body {
-            margin: 0;
-            padding: 0;
-            width: 210mm; 
-            min-height: 297mm;
-        }
-
-        .container, .bg-white, .shadow-lg {
-            box-shadow: none !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            width: 100% !important;
-            max-width: none !important;
-            border: none !important;
-        }
-        header, nav, #paste-modal, #notifications-container, .print-hidden {
-            display: none !important;
-        }
-
-        .mock-table {
-            width: 100%;
-            font-size: 10pt;
-        }
-        .mock-table th, .mock-table td {
-            padding: 4px; 
-            border-bottom: 1px solid #ccc;
-            border-right: 1px solid #ccc;
-        }
-        
-        .scroll-mode-cell, .scroll-mode-cell-numeric, .expand-mode-cell, .scroll-mode-cell-code {
-            max-width: none !important;
-            min-width: 0 !important;
-            overflow-x: visible !important;
-            white-space: normal !important;
-        }
+   @media print {
+    * {
+        box-sizing: border-box;
     }
+    
+    body {
+        margin: 0 !important;
+        padding: 10px !important;
+        width: 100% !important;
+        min-height: 297mm;
+        font-size: 10pt !important;
+        line-height: 1.2 !important;
+        background: white !important;
+        color: black !important;
+    }
+
+    .container, .bg-white, .shadow-lg {
+        box-shadow: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        max-width: none !important;
+        border: none !important;
+        background: white !important;
+    }
+    
+    /* Ocultar elementos não essenciais */
+    header, nav, #paste-modal, #notifications-container, .print-hidden,
+    .flex.border-b, .flex.flex-wrap, button, .tab-button {
+        display: none !important;
+    }
+
+    /* ✅ CORREÇÃO DA TABELA - FORÇAR CABER NA PÁGINA */
+    .mock-table {
+        width: 100% !important;
+        max-width: 100% !important;
+        font-size: 8pt !important;
+        border-collapse: collapse;
+        page-break-inside: auto;
+    }
+    
+    .mock-table th, .mock-table td {
+        padding: 3px 4px !important;
+        border: 1px solid #ccc !important;
+        font-size: 8pt !important;
+        line-height: 1.1 !important;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+    
+    .mock-table th {
+        background-color: #f8f9fa !important;
+        font-weight: bold !important;
+        color: black !important;
+    }
+    
+    /* ✅ REMOVER TODOS OS MODOS DE LARGURA FIXA NA IMPRESSÃO */
+    .scroll-mode-cell, .scroll-mode-cell-numeric, .expand-mode-cell, 
+    .scroll-mode-cell-code, .truncate-mode-cell {
+        max-width: none !important;
+        min-width: auto !important;
+        width: auto !important;
+        overflow: visible !important;
+        white-space: normal !important;
+        text-overflow: clip !important;
+    }
+    
+    /* ✅ FORÇAR QUEBRA DE TEXTO LONGO */
+    .mock-table td {
+        word-break: break-word;
+        hyphens: auto;
+    }
+    
+    /* ✅ AJUSTAR LARGURAS ESPECÍFICAS DAS COLUNAS PARA IMPRESSÃO */
+    #conferencia-table th:nth-child(1),
+    #conferencia-table td:nth-child(1) {
+        width: 15% !important; /* Código de Barras */
+    }
+    
+    #conferencia-table th:nth-child(2),
+    #conferencia-table td:nth-child(2) {
+        width: 40% !important; /* Descrição */
+    }
+    
+    #conferencia-table th:nth-child(3),
+    #conferencia-table td:nth-child(3),
+    #conferencia-table th:nth-child(4),
+    #conferencia-table td:nth-child(4),
+    #conferencia-table th:nth-child(5),
+    #conferencia-table td:nth-child(5),
+    #conferencia-table th:nth-child(6),
+    #conferencia-table td:nth-child(6) {
+        width: 10% !important; /* Colunas numéricas */
+        text-align: center !important;
+    }
+    
+    /* ✅ MANTER CORES DAS DIVERGÊNCIAS MESMO NA IMPRESSÃO */
+    .bg-fee2e2, .text-b91c1c {
+        background-color: #fee2e2 !important;
+        color: #b91c1c !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    
+    .bg-green-100, .text-green-700 {
+        background-color: #d1fae5 !important;
+        color: #047857 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    
+    .bg-yellow-50 {
+        background-color: #fefce8 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    
+    /* ✅ EVITAR QUEBRA DE LINHA NO MEIO DA LINHA */
+    .mock-table tr {
+        page-break-inside: avoid;
+        page-break-after: auto;
+    }
+    
+    /* ✅ CABEÇALHO FIXO NA IMPRESSÃO (se possível) */
+    .mock-table thead {
+        display: table-header-group;
+    }
+    
+    .mock-table th {
+        position: static !important;
+    }
+    
+    /* ✅ INFORMAÇÕES DAS NOTAS FISCAIS NA IMPRESSÃO */
+    .mb-4 {
+        margin-bottom: 8px !important;
+    }
+    
+    .mb-4 > div {
+        background: #e5e7eb !important;
+        padding: 4px 6px !important;
+        margin-bottom: 2px !important;
+        font-size: 7pt !important;
+        border: 1px solid #d1d5db !important;
+    }
+
+	       .bg-red-100 {
+        background-color: #fee2e2 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+}
     
     /* ---------------------------------------------------------------- */
     /* --- Ajuste de Notificação para Mobile (Compactação) --- */
@@ -292,12 +422,12 @@
     @media (max-width: 768px) {
         header .flex {
             flex-direction: column;
-            gap: 15px;
+            gap: 5px;
         }
         
         .nf-info {
             flex-direction: column;
-            gap: 15px;
+            gap: 5px;
         }
         
         /* ✅ HEADER MOBILE COM NOVO ESTILO */
@@ -328,7 +458,42 @@
     }
 }
 
-	 
+
+	   /* CONTIDAS AS ABAS DO CONTADOR*/
+	   
+	   @media (max-width: 767px) {
+
+    /* Menu de contadores - contido e com scroll interno */
+    .flex.border-b.border-gray-200.mb-4.print-hidden {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+		padding-bottom: 14px;
+
+		
+}
+
+	   #content-stack {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    gap: 0 !important;
+}
+}
+	   
+	   #content-stack {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    gap: 0 !important;
+
+		   .bg-red-100 {
+    background-color: #fee2e2 !important; /* Vermelho bem suave */
+}
+
+.bg-red-100:hover {
+    background-color: #fecaca !important; /* Vermelho um pouco mais forte no hover */
+}
 	   
 </style>
 </head>
@@ -405,7 +570,7 @@
     <!-- TÍTULO CENTRAL COMPACTO -->
     <div style="flex: 1; text-align: center; margin: 0 8px; min-width: 0;">
         <h1 style="font-size: 12px; font-weight: 600; line-height: 1.2; margin: 0; overflow: hidden; text-overflow: ellipsis;">Conferir NFe</h1>
-        <p style="font-size: 10px; opacity: 0.9; margin: 0; overflow: hidden; text-overflow: ellipsis;">Sistema de conferência e gestão de notas fiscais</p>
+        <p style="font-size: 10px; opacity: 0.9; margin: 0; overflow: hidden; text-overflow: ellipsis;">Sistema de conferencia e gestão de notas fiscais</p>
     </div>
     
     <!-- BOTÃO SAIR COMPACTO -->
@@ -425,7 +590,7 @@
             <!-- TÍTULO CENTRAL -->
             <div class="flex-1 text-center">
                 <h1 class="text-2xl font-semibold mb-1">Conferir NFe</h1>
-                <p class="text-sm opacity-90 max-w-md mx-auto">Sistema de conferência e gestão de notas fiscais</p>
+                <p class="text-sm opacity-90 max-w-md mx-auto">Sistema de conferencia e gestão de notas fiscais</p>
             </div>
             
             <!-- BOTÃO SAIR ESTILIZADO -->
@@ -446,9 +611,39 @@
                     <button data-tab="CONFERENCIA" class="tab-button px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 transition-colors duration-150">CONFERENCIA</button>
                 </nav>
 
+
+
+<!-- ✅ BOTÃO DE BUSCA UNIVERSAL COM X INTERNO -->
+<div class="flex flex-wrap gap-3 pb-3 mb-3 border-b border-gray-200 print-hidden mt-3">
+    <div class="relative flex-1 min-w-[300px]">
+        <input 
+            type="text" 
+            id="global-search-input"
+            placeholder="Buscar em todas as colunas..." 
+            class="w-full px-4 py-2 pl-10 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+        <!-- Ícone de busca (esquerda) -->
+        <svg class="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+        <!-- Botão X (direita) - aparece apenas quando tem texto -->
+        <button 
+            id="clear-search-button"
+            onclick="clearSearch()"
+            class="absolute right-3 top-2.5 h-5 w-5 text-gray-400 hover:text-gray-600 transition duration-150 hidden"
+        >
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+    </div>
+</div>
+				
                 <div id="content-stack" class="pt-6">
                 </div>
-                
+
+				
+				
             </div>
         </div>
 
@@ -1025,6 +1220,9 @@
             }
             
             loadTabContent(sheetName);
+
+
+			    clearSearch(); // Limpa busca ao mudar de aba
         }
 
         // ÍCONES
@@ -1049,9 +1247,9 @@
                         <span>Importar por Chave de Acesso</span>
                     </button>
                     
-                    <button onclick="toggleScrollMode('NOTA FISCAL')" id="scroll-button-notafiscal" class="flex items-center space-x-2 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg shadow-sm hover:bg-indigo-200 transition duration-150 text-sm font-medium border border-indigo-300">
-                        <span>Modo Scroll</span>
-                    </button>
+                   <button onclick="toggleScrollMode('NOTA FISCAL')" id="scroll-button-notafiscal" class="flex items-center space-x-2 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg shadow-sm hover:bg-indigo-200 transition duration-150 text-sm font-medium border border-indigo-300">
+    <span>Modo Scroll</span>
+</button>
 
                     <button onclick="confirmClearAllSheets()" class="flex items-center space-x-2 px-4 py-2 bg-red-50 text-red-700 rounded-lg shadow-sm hover:bg-red-100 transition duration-150 text-sm font-medium border border-red-200">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-2 0v6a1 1 0 102 0V7z" clip-rule="evenodd" /></svg>
@@ -1105,7 +1303,7 @@
             <div class="flex flex-wrap gap-3 pb-4 mb-4 border-b border-gray-200 print-hidden">
                 <button onclick="printConferencia()" class="flex items-center space-x-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg shadow-sm hover:bg-blue-200 transition duration-150 text-sm font-medium border border-blue-300">
                     <span class="text-blue-600">${printerIcon}</span>
-                    <span>Imprimir Conferência</span>
+                    <span>Imprimir ou salvar em PDF</span>
                 </button>
                 
                 <!-- ✅ NOVO BOTÃO EXPORTAR EXCEL -->
@@ -1113,9 +1311,24 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    <span>Exportar para Excel</span>
+                    <span>Exportar Excel</span>
                 </button>
                 
+                <!-- ✅ NOVO BOTÃO 1: MOSTRAR APENAS DIVERGÊNCIAS -->
+                <button onclick="filtrarDivergencias()" id="divergencias-button" class="flex items-center space-x-2 px-4 py-2 bg-red-100 text-red-700 rounded-lg shadow-sm hover:bg-red-200 transition duration-150 text-sm font-medium border border-red-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                    <span>Mostrar apenas divergências</span>
+                </button>
+                
+                <!-- ✅ NOVO BOTÃO 2: INTEGRAR NOTA -->
+                <button onclick="abrirIntegracaoNota()" class="flex items-center space-x-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg shadow-sm hover:bg-blue-200 transition duration-150 text-sm font-medium border border-blue-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                    <span>Integrar nota</span>
+                </button>
                 
                 <button onclick="toggleScrollMode('CONFERENCIA')" id="scroll-button-conferencia" class="flex items-center space-x-2 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg shadow-sm hover:bg-indigo-200 transition duration-150 text-sm font-medium border border-indigo-300">
                     <span>Modo Scroll</span>
@@ -1202,7 +1415,7 @@
 
 
         /**
-         * Renderiza os dados do Sheets em uma tabela HTML (usado para NF e Conferência).
+         * Renderiza os dados do Sheets em uma tabela HTML (usado para NF e Conferencia).
          */
         function renderTable(sheetName, data, headers) {
             
@@ -1345,7 +1558,7 @@
         }
 
     } else if (sheetName === "CONFERENCIA") {
-        headers = ["Código de Barras", "Descrição do Produto", "Quantidade NF", "Contagem Loja", "Diferença", "OBS"]; 
+        headers = ["Código de Barras", "Descrição do Produto", "Quantidade NF", "Contagem Loja", "Diferença", "Danos/Defeito"]; 
         targetElementId = 'dynamic-table-content-conferencia';
         
         const targetElement = document.getElementById(targetElementId);
@@ -1422,7 +1635,7 @@ function renderNotasFiscaisInfo(notasFiscaisInfo) {
     let html = `<div class="mb-4">`;
     
     // Mostra quantas notas fiscais tem - MESMA FONTE DA TABELA
-    html += `<div class="text-sm text-gray-600 mb-2 font-sans">Notas Fiscais na Conferência: ${notasFiscaisInfo.length}</div>`;
+    html += `<div class="text-sm text-gray-600 mb-2 font-sans">Notas Fiscais na Conferencia: ${notasFiscaisInfo.length}</div>`;
     
     // Mostra cada nota fiscal - MESMA FONTE DA TABELA
     notasFiscaisInfo.forEach((info, index) => {
@@ -1923,100 +2136,175 @@ function renderNotasFiscaisInfo(notasFiscaisInfo) {
         }
 
         /**
-         * Alterna entre o Modo Scroll e o Modo Expandido para a tabela especificada.
-         */
-        function toggleScrollMode(sheetName) {
-            const tableID = sheetName === 'CONFERENCIA' ? 'conferencia-table' : 'notafiscal-table';
-            const buttonID = sheetName === 'CONFERENCIA' ? 'scroll-button-conferencia' : 'scroll-button-notafiscal';
-
-            const table = document.getElementById(tableID);
-            const button = document.getElementById(buttonID);
-
-            if (!table || !button) return;
-            
-            const isScrollModeActive = button.textContent === 'Modo Expandido';
-            
-            let columnsToTarget = [];
-            const scrollClassDesc = 'scroll-mode-cell';
-            const scrollClassNumeric = 'scroll-mode-cell-numeric';
-            const scrollClassCode = 'scroll-mode-cell-code'; 
-
-            if (sheetName === 'CONFERENCIA') {
-                columnsToTarget = [1, 2, 3, 4, 5, 6];
-            } else if (sheetName === 'NOTA FISCAL') {
-                columnsToTarget = [1, 2, 3, 4];
-            }
-
-            columnsToTarget.forEach(colIndex => {
-                const cells = table.querySelectorAll(`th:nth-child(${colIndex}), td:nth-child(${colIndex})`);
-                
-                cells.forEach(cell => {
-                    
-                    if (isScrollModeActive) {
-                        cell.classList.remove(scrollClassDesc, scrollClassNumeric, scrollClassCode);
-                        cell.classList.add('expand-mode-cell'); 
-                    } else {
-                        cell.classList.remove('expand-mode-cell');
-
-                        if (sheetName === 'CONFERENCIA') {
-                            if (colIndex === 1) {
-                                cell.classList.add(scrollClassCode); 
-                            } 
-                            else if (colIndex === 2) {
-                                cell.classList.add(scrollClassDesc);
-                            }
-                            else if (colIndex >= 3 && colIndex <= 6) {
-                                cell.classList.add(scrollClassNumeric);
-                            }
-                            
-                        } else if (sheetName === 'NOTA FISCAL') {
-                            if (colIndex === 2 || colIndex === 4) {
-                                cell.classList.add(scrollClassNumeric);
-                            } else if (colIndex === 3) {
-                                cell.classList.add(scrollClassCode); 
-                            } else { 
-                                cell.classList.add(scrollClassDesc);
-                            }
-                        }
-                    }
-                });
-            });
-
-            if (isScrollModeActive) {
-                button.textContent = 'Modo Scroll';
-                button.classList.remove('bg-gray-100', 'text-gray-800', 'hover:bg-gray-200', 'border-gray-300');
-                button.classList.add('bg-indigo-100', 'text-indigo-700', 'hover:bg-indigo-200', 'border-indigo-300');
-            } else {
-                button.textContent = 'Modo Expandido';
-                button.classList.remove('bg-indigo-100', 'text-indigo-700', 'hover:bg-indigo-200', 'border-indigo-300');
-                button.classList.add('bg-gray-100', 'text-gray-800', 'hover:bg-gray-200', 'border-gray-300');
-            }
-        }
-
-        
         /**
-         * Aplica formatação condicional à coluna Diferença (E) na aba CONFERENCIA.
-         */
-        function applyConferenciaStyles(numCols) {
-            const rows = document.querySelectorAll('#conferencia-content .mock-table tbody tr');
+ /**
+ * 🔄 ALTERNA ENTRE MODO SCROLL E MODO EXPANDIDO (ORIGINAL)
+ */
+function toggleScrollMode(sheetName) {
+    const tableID = sheetName === 'CONFERENCIA' ? 'conferencia-table' : 'notafiscal-table';
+    const buttonID = sheetName === 'CONFERENCIA' ? 'scroll-button-conferencia' : 'scroll-button-notafiscal';
 
-            rows.forEach(row => {
-                const diffCell = row.querySelector('td:nth-child(5)');
-                if (!diffCell) return;
+    const table = document.getElementById(tableID);
+    const button = document.getElementById(buttonID);
 
-                let value = parseFloat(diffCell.textContent.replace(',', '.').trim());
-                
-                diffCell.classList.remove('bg-fee2e2', 'text-b91c1c', 'bg-green-100', 'text-green-700');
+    if (!table || !button) return;
+    
+    const isScrollModeActive = button.textContent === 'Modo Expandido';
+    
+    let columnsToTarget = [];
+    const scrollClassDesc = 'scroll-mode-cell';
+    const scrollClassNumeric = 'scroll-mode-cell-numeric';
+    const scrollClassCode = 'scroll-mode-cell-code'; 
 
-                if (isNaN(value) || value === 0) {
-                } else if (value < 0) {
-                    diffCell.classList.add('bg-fee2e2', 'text-b91c1c');
-                } else if (value > 0) {
-                    diffCell.classList.add('bg-green-100', 'text-green-700');
+    if (sheetName === 'CONFERENCIA') {
+        columnsToTarget = [1, 2, 3, 4, 5, 6];
+    } else if (sheetName === 'NOTA FISCAL') {
+        columnsToTarget = [1, 2, 3, 4];
+    }
+
+    columnsToTarget.forEach(colIndex => {
+        const cells = table.querySelectorAll(`th:nth-child(${colIndex}), td:nth-child(${colIndex})`);
+        
+        cells.forEach(cell => {
+            
+            if (isScrollModeActive) {
+                cell.classList.remove(scrollClassDesc, scrollClassNumeric, scrollClassCode);
+                cell.classList.add('expand-mode-cell'); 
+            } else {
+                cell.classList.remove('expand-mode-cell');
+
+                if (sheetName === 'CONFERENCIA') {
+                    if (colIndex === 1) {
+                        cell.classList.add(scrollClassCode); 
+                    } 
+                    else if (colIndex === 2) {
+                        cell.classList.add(scrollClassDesc);
+                    }
+                    else if (colIndex >= 3 && colIndex <= 6) {
+                        cell.classList.add(scrollClassNumeric);
+                    }
+                    
+                } else if (sheetName === 'NOTA FISCAL') {
+                    if (colIndex === 2 || colIndex === 4) {
+                        cell.classList.add(scrollClassNumeric);
+                    } else if (colIndex === 3) {
+                        cell.classList.add(scrollClassCode); 
+                    } else { 
+                        cell.classList.add(scrollClassDesc);
+                    }
                 }
-            });
+            }
+        });
+    });
+
+    if (isScrollModeActive) {
+        button.textContent = 'Modo Scroll';
+        button.classList.remove('bg-gray-100', 'text-gray-800', 'hover:bg-gray-200', 'border-gray-300');
+        button.classList.add('bg-indigo-100', 'text-indigo-700', 'hover:bg-indigo-200', 'border-indigo-300');
+    } else {
+        button.textContent = 'Modo Expandido';
+        button.classList.remove('bg-indigo-100', 'text-indigo-700', 'hover:bg-indigo-200', 'border-indigo-300');
+        button.classList.add('bg-gray-100', 'text-gray-800', 'hover:bg-gray-200', 'border-gray-300');
+    }
+}
+/**
+ * 📜 APLICAR MODO SCROLL
+ */
+function applyScrollMode(table, sheetName, columnsToTarget) {
+    const scrollClassDesc = 'scroll-mode-cell';
+    const scrollClassNumeric = 'scroll-mode-cell-numeric';
+    const scrollClassCode = 'scroll-mode-cell-code';
+
+    columnsToTarget.forEach(colIndex => {
+        const cells = table.querySelectorAll(`th:nth-child(${colIndex}), td:nth-child(${colIndex})`);
+        
+        cells.forEach(cell => {
+            if (sheetName === 'CONFERENCIA') {
+                if (colIndex === 1) {
+                    cell.classList.add(scrollClassCode);
+                } else if (colIndex === 2) {
+                    cell.classList.add(scrollClassDesc);
+                } else if (colIndex >= 3 && colIndex <= 6) {
+                    cell.classList.add(scrollClassNumeric);
+                }
+            } else if (sheetName === 'NOTA FISCAL') {
+                if (colIndex === 2 || colIndex === 4) {
+                    cell.classList.add(scrollClassNumeric);
+                } else if (colIndex === 3) {
+                    cell.classList.add(scrollClassCode);
+                } else {
+                    cell.classList.add(scrollClassDesc);
+                }
+            }
+        });
+    });
+}
+
+/**
+ * ✂️ APLICAR MODO TRUNCATE (RETICÊNCIAS)
+ */
+function applyTruncateMode(table, sheetName, columnsToTarget) {
+    columnsToTarget.forEach(colIndex => {
+        const cells = table.querySelectorAll(`th:nth-child(${colIndex}), td:nth-child(${colIndex})`);
+        cells.forEach(cell => {
+            cell.classList.add('truncate-mode-cell');
+        });
+    });
+}
+
+/**
+ * 📏 APLICAR MODO EXPANDIDO
+ */
+function applyExpandMode(table, columnsToTarget) {
+    columnsToTarget.forEach(colIndex => {
+        const cells = table.querySelectorAll(`th:nth-child(${colIndex}), td:nth-child(${colIndex})`);
+        cells.forEach(cell => {
+            cell.classList.add('expand-mode-cell');
+        });
+    });
+}
+      /**
+ * ✅ APLICA FORMATAÇÃO CONDICIONAL NA ABA CONFERENCIA - VERSÃO ATUALIZADA
+ * - Diferença negativa: Vermelho
+ * - Diferença positiva: Verde  
+ * - Danos/Defeito preenchido: Vermelho suave
+ */
+function applyConferenciaStyles(numCols) {
+    const rows = document.querySelectorAll('#conferencia-content .mock-table tbody tr');
+
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length < 6) return;
+
+        const diferencaCell = cells[4]; // 5ª coluna (Diferença)
+        const danosDefeitoCell = cells[5]; // 6ª coluna (Danos/Defeito)
+        
+        // ✅ REMOVER TODAS AS CLASSES DE COR ANTERIORES
+        row.classList.remove('bg-fee2e2', 'bg-green-100');
+        diferencaCell.classList.remove('bg-fee2e2', 'text-b91c1c', 'bg-green-100', 'text-green-700');
+        danosDefeitoCell.classList.remove('bg-red-100');
+
+        // ✅ 1. VERIFICAR DANOS/DEFEITO (PRIORIDADE MÁXIMA)
+        if (danosDefeitoCell && danosDefeitoCell.textContent.trim() !== '') {
+            danosDefeitoCell.classList.add('bg-red-100');
         }
 
+        // ✅ 2. VERIFICAR DIFERENÇA (SE NÃO HOUVER DANOS/DEFEITO)
+        if (diferencaCell && danosDefeitoCell.textContent.trim() === '') {
+            let value = parseFloat(diferencaCell.textContent.replace(',', '.').trim());
+            
+            if (isNaN(value) || value === 0) {
+                // Nada a fazer - sem formatação
+            } else if (value < 0) {
+                // Diferença negativa - Vermelho
+                diferencaCell.classList.add('bg-fee2e2', 'text-b91c1c');
+            } else if (value > 0) {
+                // Diferença positiva - Verde
+                diferencaCell.classList.add('bg-green-100', 'text-green-700');
+            }
+        }
+    });
+}
 
         // --- Funções de API e Utilitários ---
         
@@ -2574,87 +2862,129 @@ function renderNotasFiscaisInfo(notasFiscaisInfo) {
                 console.log("✅ Impressão Android configurada com sucesso!");
             }
         }
+/**
+ * ✅ EXPORTAR EXCEL CORRIGIDO - Inclui informações das notas e exporta apenas o visível
+ */
+function exportarParaExcel() {
+    const isAndroidApp = typeof Android !== 'undefined';
+    
+    if (isAndroidApp) {
+        Android.exportarParaExcel();
+    } else {
+        exportarCSVNoNavegador();
+    }
+}
 
-        // ✅ FUNÇÃO EXPORTAR PARA EXCEL (MELHORADA - FUNCIONAL)
-        function exportarParaExcel() {
-            const isAndroidApp = typeof Android !== 'undefined';
+/**
+ * ✅ EXPORTAR CSV CORRIGIDO - Inclui informações das notas e apenas linhas visíveis
+ */
+function exportarCSVNoNavegador() {
+    try {
+        const tabela = document.getElementById('conferencia-table');
+        if (!tabela) {
+            showNotification('Tabela de conferência não encontrada', 'error');
+            return;
+        }
+        
+        let csv = [];
+        
+        // ✅ ADICIONA BOM (Byte Order Mark) para UTF-8
+        const BOM = "\uFEFF";
+        
+        // ✅ 1. INCLUIR INFORMAÇÕES DAS NOTAS FISCAIS
+        const notasInfoElements = document.querySelectorAll('#dynamic-table-content-conferencia .mb-4 > div');
+        if (notasInfoElements.length > 0) {
+            // Adiciona título para as informações das notas
+            csv.push('"INFORMAÇÕES DAS NOTAS FISCAIS"');
             
-            if (isAndroidApp) {
-                Android.exportarParaExcel();
-            } else {
-                // No navegador - exporta diretamente
-                exportarCSVNoNavegador();
-            }
+            notasInfoElements.forEach(notaElement => {
+                let textoNota = notaElement.textContent.trim();
+                textoNota = textoNota.replace(/"/g, '""');
+                csv.push(`"${textoNota}"`);
+            });
+            
+            // Linha em branco para separar
+            csv.push('""');
         }
-
-        // ✅ FUNÇÃO PARA EXPORTAR CSV NO NAVEGADOR (CORRIGIDA - CÓDIGOS DE BARRAS FORMATADOS)
-        function exportarCSVNoNavegador() {
-            try {
-                const tabela = document.getElementById('conferencia-table');
-                if (!tabela) {
-                    showNotification('Tabela de conferência não encontrada', 'error');
-                    return;
-                }
-                
-                let csv = [];
-                
-                // ✅ ADICIONA BOM (Byte Order Mark) para UTF-8 - IMPORTANTE!
-                const BOM = "\uFEFF";
-                
-                // Cabeçalhos
-                const cabecalhos = Array.from(tabela.querySelectorAll('thead th'))
-                    .map(th => {
-                        let texto = th.textContent.trim();
-                        texto = texto.replace(/"/g, '""');
-                        return `"${texto}"`;
-                    });
-                csv.push(cabecalhos.join(';'));
-                
-                // Dados
-                const linhas = tabela.querySelectorAll('tbody tr');
-                linhas.forEach(linha => {
-                    const celulas = Array.from(linha.querySelectorAll('td'))
-                        .map((td, index) => {
-                            let texto = td.textContent.trim();
-                            
-                            // ✅ CORREÇÃO: Para a primeira coluna (Código de Barras), formata como texto
-                            if (index === 0 && texto) {
-                                // Força o Excel a tratar como texto adicionando tab no início
-                                texto = "\t" + texto;
-                            }
-                            
-                            texto = texto.replace(/"/g, '""');
-                            texto = texto.replace(/\n/g, ' ');
-                            texto = texto.replace(/\r/g, ' ');
-                            return `"${texto}"`;
-                        });
+        
+        // ✅ 2. CABEÇALHOS DA TABELA
+        const cabecalhos = Array.from(tabela.querySelectorAll('thead th'))
+            .map(th => {
+                let texto = th.textContent.trim();
+                texto = texto.replace(/"/g, '""');
+                return `"${texto}"`;
+            });
+        csv.push(cabecalhos.join(';'));
+        
+        // ✅ 3. DADOS DA TABELA - APENAS LINHAS VISÍVEIS
+        const linhas = tabela.querySelectorAll('tbody tr');
+        let linhasExportadas = 0;
+        
+        linhas.forEach(linha => {
+            // ✅ VERIFICA SE A LINHA ESTÁ VISÍVEL (não oculta pelo filtro)
+            const estilo = window.getComputedStyle(linha);
+            if (estilo.display === 'none') {
+                return; // Pula linhas ocultas
+            }
+            
+            const celulas = Array.from(linha.querySelectorAll('td'))
+                .map((td, index) => {
+                    let texto = td.textContent.trim();
                     
-                    if (celulas.length > 0 && celulas.some(cell => cell !== '""')) {
-                        csv.push(celulas.join(';'));
+                    // ✅ CORREÇÃO: Para a primeira coluna (Código de Barras), formata como texto
+                    if (index === 0 && texto) {
+                        // Força o Excel a tratar como texto adicionando tab no início
+                        texto = "\t" + texto;
                     }
+                    
+                    texto = texto.replace(/"/g, '""');
+                    texto = texto.replace(/\n/g, ' ');
+                    texto = texto.replace(/\r/g, ' ');
+                    return `"${texto}"`;
                 });
-                
-                // ✅ CRIA CSV COM BOM E ENCODING CORRETO
-                const csvContent = BOM + csv.join('\n');
-                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                
-                a.download = `conferencia_nfe_${Date.now()}.csv`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(url);
-                
-                showNotification('Arquivo Excel exportado com sucesso!', 'success');
-                
-            } catch (error) {
-                showNotification('Erro ao exportar: ' + error.message, 'error');
+            
+            if (celulas.length > 0 && celulas.some(cell => cell !== '""')) {
+                csv.push(celulas.join(';'));
+                linhasExportadas++;
             }
-        }
-                
-
+        });
+        
+        // ✅ 4. CRIA CSV COM BOM E ENCODING CORRETO
+        const csvContent = BOM + csv.join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        
+        // ✅ 5. NOME DO ARQUIVO INCLUI DATA E STATUS DO FILTRO
+        const dataAtual = new Date().toISOString().split('T')[0];
+        const horaAtual = new Date().toLocaleTimeString('pt-BR', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        }).replace(/:/g, '-');
+        
+        const filtroAtivo = document.getElementById('divergencias-button').textContent.includes('Mostrar todas');
+        const statusFiltro = filtroAtivo ? 'filtrado' : 'completo';
+        
+        a.download = `conferencia_nfe_${dataAtual}_${horaAtual}_${statusFiltro}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        // ✅ 6. FEEDBACK DETALHADO
+        const totalLinhas = linhas.length;
+        const mensagem = `Arquivo Excel exportado com sucesso! 
+                         ${linhasExportadas} de ${totalLinhas} linhas ${filtroAtivo ? '(filtradas)' : '(todas)'}
+                         ${notasInfoElements.length > 0 ? '+ informações das notas fiscais' : ''}`;
+        
+        showNotification(mensagem, 'success', 5000);
+        
+    } catch (error) {
+        console.error('Erro ao exportar:', error);
+        showNotification('Erro ao exportar: ' + error.message, 'error');
+    }
+}
         // ✅ FUNÇÃO COMPARTILHAR EM PDF (MELHORADA)
         function compartilharEmPDF() {
             const isAndroidApp = typeof Android !== 'undefined';
@@ -2709,6 +3039,288 @@ function renderNotasFiscaisInfo(notasFiscaisInfo) {
         window.addEventListener('load', function() {
             setTimeout(setupAndroidPrint, 500);
         });
+// =========================================================================
+// SISTEMA DE BUSCA UNIVERSAL
+// =========================================================================
+
+let currentSearchTerm = '';
+
+/**
+ * 👁️ MOSTRAR/OCULTAR BOTÃO X BASEADO NO CONTEÚDO
+ */
+function toggleClearButton() {
+    const searchInput = document.getElementById('global-search-input');
+    const clearButton = document.getElementById('clear-search-button');
+    
+    if (searchInput && clearButton) {
+        if (searchInput.value.trim() !== '') {
+            clearButton.classList.remove('hidden');
+        } else {
+            clearButton.classList.add('hidden');
+        }
+    }
+}
+
+/**
+ * 🗑️ LIMPAR BUSCA
+ */
+function clearSearch() {
+    document.getElementById('global-search-input').value = '';
+    currentSearchTerm = '';
+    
+    // Ocultar botão X
+    toggleClearButton();
+    
+    // Restaurar todas as linhas
+    const tables = document.querySelectorAll('.mock-table');
+    tables.forEach(table => {
+        const rows = table.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            row.style.display = '';
+            row.classList.remove('bg-yellow-50');
+            
+            // Remover highlights
+            const cells = row.querySelectorAll('td');
+            cells.forEach(cell => {
+                cell.innerHTML = cell.textContent; // Remove marcações HTML
+            });
+        });
+    });
+    
+    showNotification('Busca limpa', 'info', 2000);
+}
+
+/**
+ * 🔍 BUSCA EM TODAS AS TABELAS COM CONTAGEM
+ */
+function performGlobalSearch() {
+    const searchTerm = document.getElementById('global-search-input').value.trim().toLowerCase();
+    currentSearchTerm = searchTerm;
+    
+    // Mostrar/ocultar botão X
+    toggleClearButton();
+    
+    if (!searchTerm) {
+        clearSearch();
+        return;
+    }
+
+    // Busca em todas as tabelas visíveis
+    const tables = document.querySelectorAll('.mock-table');
+    let totalResults = 0;
+    let foundInAnyTable = false;
+
+    tables.forEach(table => {
+        const rows = table.querySelectorAll('tbody tr');
+        let foundInThisTable = false;
+
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            let rowContainsSearch = false;
+
+            cells.forEach(cell => {
+                const cellText = cell.textContent.toLowerCase();
+                if (cellText.includes(searchTerm)) {
+                    rowContainsSearch = true;
+                    // Destacar o texto encontrado
+                    highlightText(cell, searchTerm);
+                }
+            });
+
+            if (rowContainsSearch) {
+                row.style.display = '';
+                row.classList.add('bg-yellow-50');
+                foundInThisTable = true;
+                foundInAnyTable = true;
+                totalResults++; // ✅ CONTAR CADA LINHA ENCONTRADA
+            } else {
+                row.style.display = 'none';
+                row.classList.remove('bg-yellow-50');
+            }
+        });
+
+        // Mostrar mensagem se não encontrou nesta tabela
+        if (!foundInThisTable) {
+            console.log(`Não encontrado na tabela: ${table.id}`);
+        }
+    });
+
+    // Feedback visual COM CONTAGEM
+    if (foundInAnyTable) {
+        // ✅ MENSAGEM COM NÚMERO DE RESULTADOS
+        const resultText = totalResults === 1 ? '1 resultado encontrado' : `${totalResults} resultados encontrados`;
+        showNotification(`Busca: "${searchTerm}" - ${resultText}`, 'success', 3000);
+    } else {
+        showNotification(`Busca: "${searchTerm}" - Nenhum resultado encontrado`, 'warning', 3000);
+    }
+}
+/**
+ * 🎯 DESTACAR TEXTO ENCONTRADO
+ */
+function highlightText(element, searchTerm) {
+    const text = element.textContent;
+    const regex = new RegExp(`(${searchTerm})`, 'gi');
+    const highlighted = text.replace(regex, '<mark class="bg-yellow-300 px-1 rounded">$1</mark>');
+    element.innerHTML = highlighted;
+}
+
+/**
+ * 🎹 EVENT LISTENERS PARA BUSCA
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('global-search-input');
+    if (searchInput) {
+        // Busca ao digitar
+        searchInput.addEventListener('input', function(e) {
+            const term = e.target.value.trim();
+            toggleClearButton(); // Mostrar/ocultar X
+            
+            if (term.length >= 3) {
+                performGlobalSearch();
+            } else if (term.length === 0) {
+                clearSearch();
+            }
+        });
+        
+        // Busca com Enter
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performGlobalSearch();
+            }
+        });
+        
+        // Foco no campo - garantir que X aparece se tiver texto
+        searchInput.addEventListener('focus', function() {
+            if (this.value.trim() !== '') {
+                toggleClearButton();
+            }
+        });
+        
+        // Perda de foco - manter X visível se tiver texto
+        searchInput.addEventListener('blur', function() {
+            // Pequeno delay para permitir clique no X
+            setTimeout(() => {
+                if (this.value.trim() !== '') {
+                    toggleClearButton();
+                }
+            }, 200);
+        });
+    }
+    
+    // Event listener para o botão X (prevenir conflitos)
+    const clearButton = document.getElementById('clear-search-button');
+    if (clearButton) {
+        clearButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            clearSearch();
+        });
+        
+        clearButton.addEventListener('mousedown', function(e) {
+            e.preventDefault(); // Prevenir foco no input
+        });
+    }
+});
+		/**
+ * ✅ FILTRAR APENAS DIVERGÊNCIAS
+ * Mostra apenas linhas onde:
+ * - Coluna "Diferença" (5ª coluna) ≠ 0
+ * - OU Coluna "OBS" (6ª coluna) tem conteúdo
+ */
+function filtrarDivergencias() {
+    const table = document.getElementById('conferencia-table');
+    if (!table) {
+        showNotification('Tabela de conferência não encontrada', 'error');
+        return;
+    }
+
+    const rows = table.querySelectorAll('tbody tr');
+    const button = document.getElementById('divergencias-button');
+    const isFilterActive = button.textContent.includes('Mostrar todas');
+    
+    let divergenciasCount = 0;
+    let totalRows = 0;
+
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 6) {
+            totalRows++;
+            
+            const diferencaCell = cells[4]; // 5ª coluna (Diferença)
+            const obsCell = cells[5];       // 6ª coluna (OBS - agora danos defeito)
+            
+            let isDivergencia = false;
+            
+            // Verifica se é divergência (diferente de 0)
+            if (diferencaCell) {
+                const diferencaText = diferencaCell.textContent.trim();
+                const diferencaValue = parseFloat(diferencaText.replace(',', '.'));
+                if (!isNaN(diferencaValue) && diferencaValue !== 0) {
+                    isDivergencia = true;
+                }
+            }
+            
+            // Verifica se tem OBS preenchida
+            if (obsCell && obsCell.textContent.trim() !== '') {
+                isDivergencia = true;
+            }
+            
+            if (isFilterActive) {
+                // Modo "Mostrar todas" - mostra todas as linhas
+                row.style.display = '';
+                if (isDivergencia) {
+                    row.classList.add('bg-yellow-50');
+                    divergenciasCount++;
+                } else {
+                    row.classList.remove('bg-yellow-50');
+                }
+            } else {
+                // Modo "Mostrar apenas divergências" - filtra
+                if (isDivergencia) {
+                    row.style.display = '';
+                    row.classList.add('bg-yellow-50');
+                    divergenciasCount++;
+                } else {
+                    row.style.display = 'none';
+                    row.classList.remove('bg-yellow-50');
+                }
+            }
+        }
+    });
+    
+    // Alterna o texto do botão
+    if (isFilterActive) {
+        button.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+            <span>Mostrar apenas divergências</span>
+        `;
+        button.classList.remove('bg-green-100', 'text-green-700', 'border-green-300', 'hover:bg-green-200');
+        button.classList.add('bg-red-100', 'text-red-700', 'border-red-300', 'hover:bg-red-200');
+        showNotification(`Mostrando todas as ${totalRows} linhas`, 'info', 3000);
+    } else {
+        button.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <span>Mostrar todas as linhas</span>
+        `;
+        button.classList.remove('bg-red-100', 'text-red-700', 'border-red-300', 'hover:bg-red-200');
+        button.classList.add('bg-green-100', 'text-green-700', 'border-green-300', 'hover:bg-green-200');
+        showNotification(`Filtro aplicado: ${divergenciasCount} divergências de ${totalRows} linhas totais`, 'success', 4000);
+    }
+}
+
+/**
+ * ✅ ABRIR INTEGRAÇÃO DE NOTA
+ * Abre o link do sistema Microvix em nova aba
+ */
+function abrirIntegracaoNota() {
+    const url = 'https://linx.microvix.com.br/v4/home/index.asp';
+    window.open(url, '_blank');
+    showNotification('Abrindo sistema de integração...', 'info', 2000);
+}
 		
     </script>
 </body>
